@@ -1,3 +1,6 @@
+// server.js (FIXED)
+// Node.js + Express + MySQL2 + JWT + Multer
+
 const express = require('express');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
@@ -5,10 +8,13 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const fss = require('fs');
 const fs = require('fs').promises;
 
 const app = express();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+app.set('trust proxy', 1); // مهم للـ IP الحقيقي خلف Render/Proxy
+
+const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_PRODUCTION';
 
 // ================================================
 // MULTER CONFIGURATION FOR FILE UPLOADS
@@ -16,11 +22,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 // Ensure upload directories exist
 const uploadDirs = ['uploads', 'uploads/correspondences', 'uploads/templates'];
-uploadDirs.forEach(dir => {
-  if (!require('fs').existsSync(dir)) {
-    require('fs').mkdirSync(dir, { recursive: true });
-  }
-});
+for (const dir of uploadDirs) {
+  if (!fss.existsSync(dir)) fss.mkdirSync(dir, { recursive: true });
+}
 
 // Multer storage configuration
 const storage = multer.diskStorage({
@@ -28,126 +32,122 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/correspondences/');
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// File filter
+// File filter (تحقق امتداد + mimetype بشكل صحيح)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /doc|docx|pdf|jpg|jpeg|png/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb(new Error('نوع الملف غير مدعوم. الأنواع المسموحة: DOC, DOCX, PDF, JPG, PNG'));
-  }
+  const allowedExt = new Set(['.doc', '.docx', '.pdf', '.jpg', '.jpeg', '.png']);
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  // بعض الـ mimetypes تكون طويلة، نخليها لوجيك بسيط
+  const allowedMime = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png'
+  ];
+
+  const okExt = allowedExt.has(ext);
+  const okMime = allowedMime.includes(file.mimetype);
+
+  if (okExt && okMime) return cb(null, true);
+  return cb(new Error('نوع الملف غير مدعوم. الأنواع المسموحة: DOC, DOCX, PDF, JPG, PNG'));
 };
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
-  fileFilter: fileFilter
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter
 });
 
+// ================================================
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ================================================
+app.use(cors({
+  origin: '*',
+  credentials: false
+}));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use('/uploads', express.static('uploads'));
 
-// Rate Limiting للحماية من الهجمات
+// ================================================
+// Rate Limiting (Simple)
+// ================================================
 const rateLimitMap = new Map();
 
 function rateLimit(maxRequests = 100, windowMs = 60000) {
   return (req, res, next) => {
-    const ip = req.ip || req.connection.remoteAddress;
+    const ip = req.ip || req.connection?.remoteAddress || 'unknown';
     const now = Date.now();
-    
-    if (!rateLimitMap.has(ip)) {
-      rateLimitMap.set(ip, []);
-    }
-    
-    const requests = rateLimitMap.get(ip);
-    const recentRequests = requests.filter(time => now - time < windowMs);
-    
-    if (recentRequests.length >= maxRequests) {
-      return res.status(429).json({ 
+
+    const list = rateLimitMap.get(ip) || [];
+    const recent = list.filter((t) => now - t < windowMs);
+
+    if (recent.length >= maxRequests) {
+      return res.status(429).json({
         error: 'تم تجاوز الحد المسموح من الطلبات. حاول مرة أخرى لاحقاً',
         retryAfter: Math.ceil(windowMs / 1000)
       });
     }
-    
-    recentRequests.push(now);
-    rateLimitMap.set(ip, recentRequests);
-    
-    // تنظيف الذاكرة كل 5 دقائق
+
+    recent.push(now);
+    rateLimitMap.set(ip, recent);
+
+    // تنظيف عشوائي
     if (Math.random() < 0.01) {
       for (const [key, value] of rateLimitMap.entries()) {
-        const recent = value.filter(time => now - time < windowMs);
-        if (recent.length === 0) {
-          rateLimitMap.delete(key);
-        } else {
-          rateLimitMap.set(key, recent);
-        }
+        const keep = value.filter((t) => now - t < windowMs);
+        if (keep.length === 0) rateLimitMap.delete(key);
+        else rateLimitMap.set(key, keep);
       }
     }
-    
+
     next();
   };
 }
 
-// تطبيق Rate Limiting على جميع الـ APIs
-app.use('/api/', rateLimit(200, 60000)); // 200 طلب في الدقيقة
-// app.use('/api/auth/login', rateLimit(20, 60000)); // معطّل للتطوير
+app.use('/api/', rateLimit(200, 60000));
 
 // ================================================
-// Database connection pool (Render + Railway Public URL)
+// Database connection pool
 // ================================================
-console.log("✅ MYSQL_URL exists?", !!process.env.MYSQL_URL);
+console.log('✅ MYSQL_URL exists?', !!process.env.MYSQL_URL);
 
 const pool = mysql.createPool({
-  uri: process.env.MYSQL_URL,          // ✅ Render ENV: MYSQL_URL (Railway MYSQL_PUBLIC_URL)
+  uri: process.env.MYSQL_URL,
   waitForConnections: true,
   connectionLimit: 10,
   connectTimeout: 10000,
   ssl: { rejectUnauthorized: false }
 });
-// Test database connection
-pool.query("SELECT 1")
-  .then(() => console.log("✅ DB Connected"))
-  .catch((e) => console.error("❌ DB connect error:", e?.code, e?.message));
 
+pool.query('SELECT 1')
+  .then(() => console.log('✅ DB Connected'))
+  .catch((e) => console.error('❌ DB connect error:', e?.code, e?.message));
 
 // ================================================
-// HELPER FUNCTIONS
+// HELPERS
 // ================================================
-
-// Simple Cache
 const cache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 دقائق
+const CACHE_TTL = 5 * 60 * 1000;
 
 function getCache(key) {
   const item = cache.get(key);
   if (!item) return null;
-  
   if (Date.now() - item.timestamp > CACHE_TTL) {
     cache.delete(key);
     return null;
   }
-  
   return item.data;
 }
 
 function setCache(key, data) {
-  cache.set(key, {
-    data: data,
-    timestamp: Date.now()
-  });
-  
-  // تنظيف الذاكرة
+  cache.set(key, { data, timestamp: Date.now() });
   if (cache.size > 100) {
     const firstKey = cache.keys().next().value;
     cache.delete(firstKey);
@@ -156,13 +156,10 @@ function setCache(key, data) {
 
 function clearCache(pattern) {
   for (const key of cache.keys()) {
-    if (key.includes(pattern)) {
-      cache.delete(key);
-    }
+    if (key.includes(pattern)) cache.delete(key);
   }
 }
 
-// تسجيل العمليات في Audit Log
 async function logAudit(userId, action, tableName, recordId, details = null) {
   try {
     await pool.query(
@@ -175,7 +172,6 @@ async function logAudit(userId, action, tableName, recordId, details = null) {
   }
 }
 
-// إنشاء إشعار
 async function createNotification(userId, type, title, message, relatedId = null, relatedType = null) {
   try {
     await pool.query(
@@ -188,53 +184,56 @@ async function createNotification(userId, type, title, message, relatedId = null
   }
 }
 
+function toRelativeUploadPath(absOrMulterPath) {
+  // multer يعطيك: uploads/correspondences/xxx.ext
+  // نخزن: correspondences/xxx.ext
+  return String(absOrMulterPath).replace(/^uploads[\/\\]/, '');
+}
+
+function toFullUploadPath(relativePath) {
+  // relative: correspondences/xxx.ext
+  // full: <project>/uploads/correspondences/xxx.ext
+  if (!relativePath) return null;
+  const rel = String(relativePath).replace(/^uploads[\/\\]/, '');
+  return path.join(__dirname, 'uploads', rel);
+}
+
 // ================================================
 // AUTH MIDDLEWARE
 // ================================================
-
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({ error: 'يجب تسجيل الدخول' });
-  }
-  
+  const authHeader = req.headers['authorization'] || '';
+  const parts = authHeader.split(' ');
+  const token = (parts.length === 2 && /^Bearer$/i.test(parts[0])) ? parts[1] : null;
+
+  if (!token) return res.status(401).json({ error: 'يجب تسجيل الدخول' });
+
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'رمز غير صالح' });
-    }
+    if (err) return res.status(403).json({ error: 'رمز غير صالح' });
     req.user = user;
     next();
   });
 }
 
-// التحقق من الصلاحيات
 function checkPermission(requiredLevel) {
   return (req, res, next) => {
-    if (req.user.level > requiredLevel) {
-      return res.status(403).json({ error: 'غير مصرح لك' });
-    }
+    if (req.user.level > requiredLevel) return res.status(403).json({ error: 'غير مصرح لك' });
     next();
   };
 }
+
 // ================================================
 // AUTH ROUTES
 // ================================================
-
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { username, password, twoFactorCode } = req.body;
+    const { username, password } = req.body;
 
     const [users] = await pool.query(
-      `SELECT u.*, r.role_name_ar, r.level, r.permissions, 
-              d.dept_name, dvs.div_name, s.school_name
-       FROM users u
-       LEFT JOIN roles r ON u.role_id = r.id
-       LEFT JOIN departments d ON u.department_id = d.id
-       LEFT JOIN divisions dvs ON u.division_id = dvs.id
-       LEFT JOIN schools s ON u.school_id = s.id
-       WHERE u.username = ? AND u.is_active = 1`,
+      `SELECT id, username, password_hash, full_name, role_id, is_active
+       FROM users
+       WHERE username = ? AND is_active = 1
+       LIMIT 1`,
       [username]
     );
 
@@ -244,40 +243,21 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = users[0];
 
-    if (!user.password_hash) {
-      return res.status(500).json({ error: 'Login failed', details: 'Missing password_hash', code: 'NO_PASSWORD_HASH' });
-    }
-
-    const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) {
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) {
       return res.status(401).json({ error: 'خطأ في اسم المستخدم أو كلمة المرور' });
     }
 
-    // التحقق من المصادقة الثنائية إذا كانت مفعلة
-    if (user.two_factor_enabled) {
-      if (!twoFactorCode) {
-        return res.json({ requiresTwoFactor: true });
-      }
-      // TODO: تحقق 2FA لاحقاً
-    }
-
-    // تحديث آخر تسجيل دخول
+    // سجل آخر دخول (اختياري)
     await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        username: user.username,
-        level: user.level,
-        permissions: user.permissions
-      },
+      { id: user.id, username: user.username, role_id: user.role_id },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
     delete user.password_hash;
-    delete user.two_factor_secret;
-
     return res.json({ success: true, token, user });
 
   } catch (error) {
@@ -289,10 +269,10 @@ app.post('/api/auth/login', async (req, res) => {
     });
   }
 });
+
 // ================================================
 // USERS ROUTES
 // ================================================
-
 app.get('/api/users', authenticateToken, async (req, res) => {
   try {
     const [users] = await pool.query(
@@ -304,8 +284,8 @@ app.get('/api/users', authenticateToken, async (req, res) => {
        LEFT JOIN schools s ON u.school_id = s.id
        ORDER BY u.created_at DESC`
     );
-    
-    users.forEach(u => delete u.password_hash);
+
+    users.forEach((u) => delete u.password_hash);
     res.json({ success: true, data: users });
   } catch (error) {
     console.error(error);
@@ -325,11 +305,9 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
        WHERE u.id = ?`,
       [req.params.id]
     );
-    
-    if (users.length === 0) {
-      return res.status(404).json({ error: 'غير موجود' });
-    }
-    
+
+    if (users.length === 0) return res.status(404).json({ error: 'غير موجود' });
+
     delete users[0].password_hash;
     res.json({ success: true, data: users[0] });
   } catch (error) {
@@ -338,35 +316,30 @@ app.get('/api/users/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// إنشاء مستخدم جديد
 app.post('/api/users', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { username, password, full_name, email, phone, role_id, department_id, division_id, school_id } = req.body;
-    
-    // تشفير كلمة المرور
+
     const password_hash = await bcrypt.hash(password, 10);
-    
+
     const [result] = await pool.query(
-      `INSERT INTO users 
+      `INSERT INTO users
        (username, password_hash, full_name, email, phone, role_id, department_id, division_id, school_id, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [username, password_hash, full_name, email, phone, role_id, department_id, division_id, school_id, req.user.id]
     );
-    
+
     await logAudit(req.user.id, 'CREATE', 'users', result.insertId, { username, full_name });
-    
-    // مسح الـ cache
+
     clearCache('users');
     clearCache('roles');
     clearCache('departments');
     clearCache('divisions');
-    
+
     res.json({ success: true, message: 'تم إنشاء المستخدم بنجاح', data: { id: result.insertId } });
   } catch (error) {
     console.error(error);
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ error: 'اسم المستخدم موجود مسبقاً' });
-    }
+    if (error.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'اسم المستخدم موجود مسبقاً' });
     res.status(500).json({ error: 'فشل الإنشاء' });
   }
 });
@@ -375,48 +348,31 @@ app.put('/api/users/:userId', authenticateToken, async (req, res) => {
   const { userId } = req.params;
   const { full_name, email, phone, role_id, department_id, division_id, school_id } = req.body;
 
-  // التحقق من الصلاحية
-  if (req.user.id != userId && req.user.level > 2) {
-    return res.status(403).json({ error: 'غير مصرح لك' });
-  }
+  if (req.user.id != userId && req.user.level > 2) return res.status(403).json({ error: 'غير مصرح لك' });
 
   try {
-    // إذا كان مدير، يقدر يعدل كل شي
-    if (req.user.level <= 2 && (role_id !== undefined || department_id !== undefined)) {
-      // المدير يعدل كل الحقول
+    if (req.user.level <= 2 && (role_id !== undefined || department_id !== undefined || division_id !== undefined || school_id !== undefined)) {
       await pool.query(
-        `UPDATE users 
+        `UPDATE users
          SET full_name = ?, email = ?, phone = ?, role_id = ?, department_id = ?, division_id = ?, school_id = ?
          WHERE id = ?`,
         [full_name, email, phone, role_id, department_id, division_id, school_id, userId]
       );
     } else {
-      // المستخدم العادي يعدل معلوماته الشخصية فقط
-      await pool.query(
-        'UPDATE users SET full_name = ?, email = ?, phone = ? WHERE id = ?',
-        [full_name, email, phone, userId]
-      );
+      await pool.query('UPDATE users SET full_name = ?, email = ?, phone = ? WHERE id = ?', [full_name, email, phone, userId]);
     }
 
-    // تحديث localStorage للمستخدم
-    const [updatedUser] = await pool.query(
-      'SELECT * FROM users WHERE id = ?',
-      [userId]
-    );
-    
+    const [updatedUser] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+
     await logAudit(req.user.id, 'UPDATE', 'users', userId, { full_name, email });
-    res.json({ 
-      success: true, 
-      message: 'تم تحديث البيانات بنجاح',
-      data: updatedUser[0]
-    });
+
+    res.json({ success: true, message: 'تم تحديث البيانات بنجاح', data: updatedUser[0] });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'فشل التحديث: ' + error.message });
   }
 });
 
-// حذف مستخدم (تعطيل)
 app.delete('/api/users/:id', authenticateToken, checkPermission(1), async (req, res) => {
   try {
     await pool.query('UPDATE users SET is_active = 0 WHERE id = ?', [req.params.id]);
@@ -431,53 +387,40 @@ app.delete('/api/users/:id', authenticateToken, checkPermission(1), async (req, 
 // ================================================
 // USER SIGNATURE ROUTES
 // ================================================
-
-// Get user signature
 app.get('/api/users/:id/signature', authenticateToken, async (req, res) => {
   try {
     const [signatures] = await pool.query(
       'SELECT * FROM user_signatures WHERE user_id = ? ORDER BY created_at DESC LIMIT 1',
       [req.params.id]
     );
-    
-    if (signatures.length > 0) {
-      res.json({ success: true, data: signatures[0] });
-    } else {
-      res.json({ success: true, data: null });
-    }
+
+    res.json({ success: true, data: signatures.length ? signatures[0] : null });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'حدث خطأ' });
   }
 });
 
-// Save/Update user signature
 app.post('/api/users/:id/signature', authenticateToken, async (req, res) => {
   try {
     const { signature_data } = req.body;
-    
-    // Check if signature exists
-    const [existing] = await pool.query(
-      'SELECT id FROM user_signatures WHERE user_id = ?',
-      [req.params.id]
-    );
-    
+
+    const [existing] = await pool.query('SELECT id FROM user_signatures WHERE user_id = ?', [req.params.id]);
+
     if (existing.length > 0) {
-      // Update existing
       await pool.query(
         'UPDATE user_signatures SET signature_data = ?, updated_at = NOW() WHERE user_id = ?',
         [signature_data, req.params.id]
       );
     } else {
-      // Insert new
       await pool.query(
         'INSERT INTO user_signatures (user_id, signature_data) VALUES (?, ?)',
         [req.params.id, signature_data]
       );
     }
-    
+
     await logAudit(req.user.id, 'UPDATE', 'user_signatures', req.params.id, { action: 'save_signature' });
-    
+
     res.json({ success: true, message: 'تم حفظ التوقيع بنجاح' });
   } catch (error) {
     console.error(error);
@@ -485,12 +428,11 @@ app.post('/api/users/:id/signature', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user's correspondence signatures (log)
 app.get('/api/users/:id/signatures', authenticateToken, async (req, res) => {
   try {
     const [signatures] = await pool.query(
-      `SELECT cs.*, 
-              c.subject as corr_subject, 
+      `SELECT cs.*,
+              c.subject as corr_subject,
               c.corr_number as corr_number,
               u.full_name as signer_name
        FROM correspondence_signatures cs
@@ -500,7 +442,7 @@ app.get('/api/users/:id/signatures', authenticateToken, async (req, res) => {
        ORDER BY cs.signed_at DESC`,
       [req.params.id]
     );
-    
+
     res.json({ success: true, data: signatures });
   } catch (error) {
     console.error(error);
@@ -512,32 +454,17 @@ app.post('/api/users/:userId/change-password', authenticateToken, async (req, re
   const { userId } = req.params;
   const { currentPassword, newPassword } = req.body;
 
-  if (req.user.id != userId) {
-    return res.status(403).json({ error: 'غير مصرح لك' });
-  }
+  if (req.user.id != userId) return res.status(403).json({ error: 'غير مصرح لك' });
 
   try {
-    const [users] = await pool.query(
-      'SELECT password_hash FROM users WHERE id = ?',
-      [userId]
-    );
-
-    if (users.length === 0) {
-      return res.status(404).json({ error: 'المستخدم غير موجود' });
-    }
+    const [users] = await pool.query('SELECT password_hash FROM users WHERE id = ?', [userId]);
+    if (users.length === 0) return res.status(404).json({ error: 'المستخدم غير موجود' });
 
     const match = await bcrypt.compare(currentPassword, users[0].password_hash);
-
-    if (!match) {
-      return res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' });
-    }
+    if (!match) return res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await pool.query(
-      'UPDATE users SET password_hash = ? WHERE id = ?',
-      [hashedPassword, userId]
-    );
+    await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [hashedPassword, userId]);
 
     await logAudit(req.user.id, 'CHANGE_PASSWORD', 'users', userId);
     res.json({ success: true, message: 'تم تغيير كلمة المرور بنجاح' });
@@ -550,15 +477,11 @@ app.post('/api/users/:userId/change-password', authenticateToken, async (req, re
 // ================================================
 // DEPARTMENTS ROUTES
 // ================================================
-
 app.get('/api/departments', authenticateToken, async (req, res) => {
   try {
-    // محاولة جلب من الـ cache
     const cached = getCache('departments');
-    if (cached) {
-      return res.json({ success: true, data: cached, cached: true });
-    }
-    
+    if (cached) return res.json({ success: true, data: cached, cached: true });
+
     const [departments] = await pool.query(
       `SELECT d.*, u.full_name as manager_name,
               (SELECT COUNT(*) FROM divisions WHERE department_id = d.id) as divisions_count,
@@ -567,10 +490,8 @@ app.get('/api/departments', authenticateToken, async (req, res) => {
        LEFT JOIN users u ON d.manager_id = u.id
        WHERE d.is_active = 1`
     );
-    
-    // حفظ في الـ cache
+
     setCache('departments', departments);
-    
     res.json({ success: true, data: departments });
   } catch (error) {
     console.error(error);
@@ -578,22 +499,19 @@ app.get('/api/departments', authenticateToken, async (req, res) => {
   }
 });
 
-// إنشاء قسم جديد
 app.post('/api/departments', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { dept_code, dept_name, description, manager_id, color_code } = req.body;
-    
+
     const [result] = await pool.query(
       `INSERT INTO departments (dept_code, dept_name, description, manager_id, color_code, created_by)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [dept_code, dept_name, description, manager_id, color_code || '#2563eb', req.user.id]
     );
-    
+
     await logAudit(req.user.id, 'CREATE', 'departments', result.insertId, { dept_name });
-    
-    // مسح الـ cache
     clearCache('departments');
-    
+
     res.json({ success: true, message: 'تم إنشاء القسم بنجاح', data: { id: result.insertId } });
   } catch (error) {
     console.error(error);
@@ -601,20 +519,20 @@ app.post('/api/departments', authenticateToken, checkPermission(2), async (req, 
   }
 });
 
-// تعديل قسم
 app.put('/api/departments/:id', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { dept_name, description, manager_id, color_code } = req.body;
-    
+
     await pool.query(
-      `UPDATE departments 
+      `UPDATE departments
        SET dept_name = ?, description = ?, manager_id = ?, color_code = ?
        WHERE id = ?`,
       [dept_name, description, manager_id, color_code, req.params.id]
     );
-    
+
     await logAudit(req.user.id, 'UPDATE', 'departments', req.params.id, { dept_name });
-    
+    clearCache('departments');
+
     res.json({ success: true, message: 'تم تحديث القسم بنجاح' });
   } catch (error) {
     console.error(error);
@@ -622,11 +540,11 @@ app.put('/api/departments/:id', authenticateToken, checkPermission(2), async (re
   }
 });
 
-// حذف قسم
 app.delete('/api/departments/:id', authenticateToken, checkPermission(1), async (req, res) => {
   try {
     await pool.query('UPDATE departments SET is_active = 0 WHERE id = ?', [req.params.id]);
     await logAudit(req.user.id, 'DELETE', 'departments', req.params.id);
+    clearCache('departments');
     res.json({ success: true, message: 'تم حذف القسم بنجاح' });
   } catch (error) {
     console.error(error);
@@ -637,15 +555,11 @@ app.delete('/api/departments/:id', authenticateToken, checkPermission(1), async 
 // ================================================
 // DIVISIONS ROUTES
 // ================================================
-
 app.get('/api/divisions', authenticateToken, async (req, res) => {
   try {
-    // محاولة جلب من الـ cache
     const cached = getCache('divisions');
-    if (cached) {
-      return res.json({ success: true, data: cached, cached: true });
-    }
-    
+    if (cached) return res.json({ success: true, data: cached, cached: true });
+
     const [divisions] = await pool.query(
       `SELECT dvs.*, d.dept_name, u.full_name as manager_name,
               (SELECT COUNT(*) FROM users WHERE division_id = dvs.id) as users_count
@@ -654,10 +568,8 @@ app.get('/api/divisions', authenticateToken, async (req, res) => {
        LEFT JOIN users u ON dvs.manager_id = u.id
        WHERE dvs.is_active = 1`
     );
-    
-    // حفظ في الـ cache
+
     setCache('divisions', divisions);
-    
     res.json({ success: true, data: divisions });
   } catch (error) {
     console.error(error);
@@ -665,22 +577,19 @@ app.get('/api/divisions', authenticateToken, async (req, res) => {
   }
 });
 
-// إنشاء شعبة جديدة
 app.post('/api/divisions', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { div_code, div_name, department_id, description, manager_id, color_code } = req.body;
-    
+
     const [result] = await pool.query(
       `INSERT INTO divisions (div_code, div_name, department_id, description, manager_id, color_code, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [div_code, div_name, department_id, description, manager_id, color_code || '#10b981', req.user.id]
     );
-    
+
     await logAudit(req.user.id, 'CREATE', 'divisions', result.insertId, { div_name });
-    
-    // مسح الـ cache
     clearCache('divisions');
-    
+
     res.json({ success: true, message: 'تم إنشاء الشعبة بنجاح', data: { id: result.insertId } });
   } catch (error) {
     console.error(error);
@@ -688,20 +597,20 @@ app.post('/api/divisions', authenticateToken, checkPermission(2), async (req, re
   }
 });
 
-// تعديل شعبة
 app.put('/api/divisions/:id', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { div_name, department_id, description, manager_id, color_code } = req.body;
-    
+
     await pool.query(
-      `UPDATE divisions 
+      `UPDATE divisions
        SET div_name = ?, department_id = ?, description = ?, manager_id = ?, color_code = ?
        WHERE id = ?`,
       [div_name, department_id, description, manager_id, color_code, req.params.id]
     );
-    
+
     await logAudit(req.user.id, 'UPDATE', 'divisions', req.params.id, { div_name });
-    
+    clearCache('divisions');
+
     res.json({ success: true, message: 'تم تحديث الشعبة بنجاح' });
   } catch (error) {
     console.error(error);
@@ -709,11 +618,11 @@ app.put('/api/divisions/:id', authenticateToken, checkPermission(2), async (req,
   }
 });
 
-// حذف شعبة
 app.delete('/api/divisions/:id', authenticateToken, checkPermission(1), async (req, res) => {
   try {
     await pool.query('UPDATE divisions SET is_active = 0 WHERE id = ?', [req.params.id]);
     await logAudit(req.user.id, 'DELETE', 'divisions', req.params.id);
+    clearCache('divisions');
     res.json({ success: true, message: 'تم حذف الشعبة بنجاح' });
   } catch (error) {
     console.error(error);
@@ -724,7 +633,6 @@ app.delete('/api/divisions/:id', authenticateToken, checkPermission(1), async (r
 // ================================================
 // SCHOOLS ROUTES
 // ================================================
-
 app.get('/api/schools', authenticateToken, async (req, res) => {
   try {
     const [schools] = await pool.query(
@@ -741,19 +649,17 @@ app.get('/api/schools', authenticateToken, async (req, res) => {
   }
 });
 
-// إنشاء مدرسة جديدة
 app.post('/api/schools', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { school_code, school_name, address, manager_id } = req.body;
-    
+
     const [result] = await pool.query(
       `INSERT INTO schools (school_code, school_name, address, manager_id, created_by)
        VALUES (?, ?, ?, ?, ?)`,
       [school_code, school_name, address, manager_id, req.user.id]
     );
-    
+
     await logAudit(req.user.id, 'CREATE', 'schools', result.insertId, { school_name });
-    
     res.json({ success: true, message: 'تم إنشاء المدرسة بنجاح', data: { id: result.insertId } });
   } catch (error) {
     console.error(error);
@@ -761,20 +667,18 @@ app.post('/api/schools', authenticateToken, checkPermission(2), async (req, res)
   }
 });
 
-// تعديل مدرسة
 app.put('/api/schools/:id', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { school_name, address, manager_id } = req.body;
-    
+
     await pool.query(
-      `UPDATE schools 
+      `UPDATE schools
        SET school_name = ?, address = ?, manager_id = ?
        WHERE id = ?`,
       [school_name, address, manager_id, req.params.id]
     );
-    
+
     await logAudit(req.user.id, 'UPDATE', 'schools', req.params.id, { school_name });
-    
     res.json({ success: true, message: 'تم تحديث المدرسة بنجاح' });
   } catch (error) {
     console.error(error);
@@ -782,7 +686,6 @@ app.put('/api/schools/:id', authenticateToken, checkPermission(2), async (req, r
   }
 });
 
-// حذف مدرسة
 app.delete('/api/schools/:id', authenticateToken, checkPermission(1), async (req, res) => {
   try {
     await pool.query('UPDATE schools SET is_active = 0 WHERE id = ?', [req.params.id]);
@@ -797,23 +700,18 @@ app.delete('/api/schools/:id', authenticateToken, checkPermission(1), async (req
 // ================================================
 // ROLES ROUTES
 // ================================================
-
 app.get('/api/roles', authenticateToken, async (req, res) => {
   try {
-    // محاولة جلب من الـ cache
     const cached = getCache('roles');
-    if (cached) {
-      return res.json({ success: true, data: cached, cached: true });
-    }
-    
+    if (cached) return res.json({ success: true, data: cached, cached: true });
+
     const [roles] = await pool.query(
       `SELECT r.*, (SELECT COUNT(*) FROM users WHERE role_id = r.id) as users_count
-       FROM roles r ORDER BY r.level`
+       FROM roles r
+       ORDER BY r.level`
     );
-    
-    // حفظ في الـ cache
+
     setCache('roles', roles);
-    
     res.json({ success: true, data: roles });
   } catch (error) {
     console.error(error);
@@ -821,21 +719,14 @@ app.get('/api/roles', authenticateToken, async (req, res) => {
   }
 });
 
-// تحديث صلاحيات الدور
 app.put('/api/roles/:id', authenticateToken, checkPermission(1), async (req, res) => {
   try {
     const { permissions } = req.body;
-    
-    await pool.query(
-      `UPDATE roles SET permissions = ? WHERE id = ?`,
-      [JSON.stringify(permissions), req.params.id]
-    );
-    
+
+    await pool.query('UPDATE roles SET permissions = ? WHERE id = ?', [JSON.stringify(permissions), req.params.id]);
     await logAudit(req.user.id, 'UPDATE', 'roles', req.params.id, { permissions });
-    
-    // مسح الـ cache
+
     clearCache('roles');
-    
     res.json({ success: true, message: 'تم تحديث الصلاحيات بنجاح' });
   } catch (error) {
     console.error(error);
@@ -844,21 +735,15 @@ app.put('/api/roles/:id', authenticateToken, checkPermission(1), async (req, res
 });
 
 // ================================================
-// WORKFLOW HELPER FUNCTIONS
+// WORKFLOW HELPER
 // ================================================
-
 async function createWorkflowStages(correspondenceId, senderId, divisionId, departmentId, finalRecipientId) {
   try {
     const stages = [];
     let order = 1;
-    
-    // المرحلة 1: الشعبة (إذا كان المرسل ينتمي لشعبة) - توقيع إلكتروني فقط
+
     if (divisionId) {
-      const [divManager] = await pool.query(
-        'SELECT manager_id FROM divisions WHERE id = ?',
-        [divisionId]
-      );
-      
+      const [divManager] = await pool.query('SELECT manager_id FROM divisions WHERE id = ?', [divisionId]);
       if (divManager.length > 0 && divManager[0].manager_id && divManager[0].manager_id !== senderId) {
         stages.push({
           correspondence_id: correspondenceId,
@@ -866,61 +751,45 @@ async function createWorkflowStages(correspondenceId, senderId, divisionId, depa
           stage_order: order++,
           assigned_to: divManager[0].manager_id,
           status: 'pending',
-          requires_signature: false // توقيع إلكتروني فقط
+          requires_signature: false
         });
       }
     }
-    
-    // المرحلة 2: القسم (إذا كان المرسل ينتمي لقسم) - توقيع إلكتروني فقط
+
     if (departmentId) {
-      const [deptManager] = await pool.query(
-        'SELECT manager_id FROM departments WHERE id = ?',
-        [departmentId]
-      );
-      
+      const [deptManager] = await pool.query('SELECT manager_id FROM departments WHERE id = ?', [departmentId]);
       if (deptManager.length > 0 && deptManager[0].manager_id && deptManager[0].manager_id !== senderId) {
         stages.push({
           correspondence_id: correspondenceId,
           stage_name: 'اعتماد القسم',
           stage_order: order++,
           assigned_to: deptManager[0].manager_id,
-          status: order === 1 ? 'pending' : 'waiting',
-          requires_signature: false // توقيع إلكتروني فقط
+          status: stages.length === 0 ? 'pending' : 'waiting',
+          requires_signature: false
         });
       }
     }
-    
-    // المرحلة 3: المستلم النهائي (التوقيع المباشر على الكتاب)
+
     if (finalRecipientId && finalRecipientId !== senderId) {
       stages.push({
         correspondence_id: correspondenceId,
         stage_name: 'التوقيع النهائي',
         stage_order: order++,
         assigned_to: finalRecipientId,
-        status: order === 1 ? 'pending' : 'waiting',
-        requires_signature: true // توقيع مباشر يُطبع على الكتاب
+        status: stages.length === 0 ? 'pending' : 'waiting',
+        requires_signature: true
       });
     }
-    
-    // إدراج المراحل
-    if (stages.length > 0) {
-      for (const stage of stages) {
-        await pool.query(
-          `INSERT INTO workflow_stages 
-           (correspondence_id, stage_name, stage_order, assigned_to, status, requires_signature)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [
-            stage.correspondence_id,
-            stage.stage_name,
-            stage.stage_order,
-            stage.assigned_to,
-            stage.status,
-            stage.requires_signature || false
-          ]
-        );
-      }
+
+    for (const stage of stages) {
+      await pool.query(
+        `INSERT INTO workflow_stages
+         (correspondence_id, stage_name, stage_order, assigned_to, status, requires_signature)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [stage.correspondence_id, stage.stage_name, stage.stage_order, stage.assigned_to, stage.status, !!stage.requires_signature]
+      );
     }
-    
+
     return stages.length;
   } catch (error) {
     console.error('Error creating workflow stages:', error);
@@ -932,13 +801,38 @@ async function createWorkflowStages(correspondenceId, senderId, divisionId, depa
 // CORRESPONDENCES ROUTES
 // ================================================
 
-// جلب جميع المراسلات
+// جلب جميع المراسلات + pagination + count صحيح
 app.get('/api/correspondences', authenticateToken, async (req, res) => {
   try {
-    const { status, priority, sender_id, receiver_id, search, page = 1, limit = 20 } = req.query;
-    
-    let query = `
-      SELECT c.*, 
+    const { status, priority, sender_id, receiver_id, search } = req.query;
+    const page = parseInt(req.query.page || '1');
+    const limit = parseInt(req.query.limit || '20');
+    const offset = (page - 1) * limit;
+
+    const where = ['1=1'];
+    const params = [];
+
+    if (status) { where.push('c.status = ?'); params.push(status); }
+    if (priority) { where.push('c.priority = ?'); params.push(priority); }
+    if (sender_id) { where.push('c.sender_id = ?'); params.push(sender_id); }
+    if (receiver_id) { where.push('c.receiver_id = ?'); params.push(receiver_id); }
+
+    if (search) {
+      where.push('(c.corr_number LIKE ? OR c.subject LIKE ? OR c.content LIKE ?)');
+      const term = `%${search}%`;
+      params.push(term, term, term);
+    }
+
+    // صلاحيات المستخدم
+    if (req.user.level > 2) {
+      where.push('(c.sender_id = ? OR c.receiver_id = ? OR c.current_handler_id = ?)');
+      params.push(req.user.id, req.user.id, req.user.id);
+    }
+
+    const baseWhereSql = where.join(' AND ');
+
+    const dataSql = `
+      SELECT c.*,
              sender.full_name as sender_name,
              receiver.full_name as receiver_name,
              handler.full_name as handler_name,
@@ -947,68 +841,24 @@ app.get('/api/correspondences', authenticateToken, async (req, res) => {
       LEFT JOIN users sender ON c.sender_id = sender.id
       LEFT JOIN users receiver ON c.receiver_id = receiver.id
       LEFT JOIN users handler ON c.current_handler_id = handler.id
-      WHERE 1=1
+      WHERE ${baseWhereSql}
+      ORDER BY c.created_at DESC
+      LIMIT ? OFFSET ?
     `;
-    
-    const params = [];
-    
-    // الفلترة
-    if (status) {
-      query += ' AND c.status = ?';
-      params.push(status);
-    }
-    
-    if (priority) {
-      query += ' AND c.priority = ?';
-      params.push(priority);
-    }
-    
-    if (sender_id) {
-      query += ' AND c.sender_id = ?';
-      params.push(sender_id);
-    }
-    
-    if (receiver_id) {
-      query += ' AND c.receiver_id = ?';
-      params.push(receiver_id);
-    }
-    
-    if (search) {
-      query += ' AND (c.corr_number LIKE ? OR c.subject LIKE ? OR c.content LIKE ?)';
-      const searchTerm = `%${search}%`;
-      params.push(searchTerm, searchTerm, searchTerm);
-    }
-    
-    // البحث حسب صلاحيات المستخدم
-    if (req.user.level > 2) {
-      query += ' AND (c.sender_id = ? OR c.receiver_id = ? OR c.current_handler_id = ?)';
-      params.push(req.user.id, req.user.id, req.user.id);
-    }
-    
-    query += ' ORDER BY c.created_at DESC';
-    
-    // Pagination
-    const offset = (page - 1) * limit;
-    query += ' LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), offset);
-    
-    const [correspondences] = await pool.query(query, params);
-    
-    // عدد الصفحات
-    const [countResult] = await pool.query(
-      'SELECT COUNT(*) as total FROM correspondences WHERE 1=1' + 
-      (req.user.level > 2 ? ' AND (sender_id = ? OR receiver_id = ? OR current_handler_id = ?)' : ''),
-      req.user.level > 2 ? [req.user.id, req.user.id, req.user.id] : []
-    );
-    
-    res.json({ 
-      success: true, 
+
+    const [correspondences] = await pool.query(dataSql, [...params, limit, offset]);
+
+    const countSql = `SELECT COUNT(*) as total FROM correspondences c WHERE ${baseWhereSql}`;
+    const [countRows] = await pool.query(countSql, params);
+
+    res.json({
+      success: true,
       data: correspondences,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total: countResult[0].total,
-        pages: Math.ceil(countResult[0].total / limit)
+        page,
+        limit,
+        total: countRows[0]?.total || 0,
+        pages: Math.ceil((countRows[0]?.total || 0) / limit)
       }
     });
   } catch (error) {
@@ -1017,10 +867,12 @@ app.get('/api/correspondences', authenticateToken, async (req, res) => {
   }
 });
 
-// جلب مراسلة واحدة
+// ✅ Route واحد فقط لتفاصيل المراسلة (حل مشكلة التكرار)
 app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
   try {
-    const [correspondences] = await pool.query(
+    const id = req.params.id;
+
+    const [rows] = await pool.query(
       `SELECT c.*,
               sender.full_name as sender_name,
               receiver.full_name as receiver_name,
@@ -1030,20 +882,16 @@ app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
        LEFT JOIN users receiver ON c.receiver_id = receiver.id
        LEFT JOIN users handler ON c.current_handler_id = handler.id
        WHERE c.id = ?`,
-      [req.params.id]
+      [id]
     );
-    
-    if (correspondences.length === 0) {
-      return res.status(404).json({ error: 'غير موجودة' });
-    }
 
-    // جلب المرفقات
+    if (rows.length === 0) return res.status(404).json({ error: 'المراسلة غير موجودة' });
+
     const [attachments] = await pool.query(
-      'SELECT * FROM attachments WHERE correspondence_id = ?',
-      [req.params.id]
+      'SELECT * FROM correspondence_attachments WHERE correspondence_id = ?',
+      [id]
     );
 
-    // جلب التوقيعات
     const [signatures] = await pool.query(
       `SELECT cs.*, u.full_name as signer_name, r.role_name_ar
        FROM correspondence_signatures cs
@@ -1051,26 +899,31 @@ app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
        LEFT JOIN roles r ON u.role_id = r.id
        WHERE cs.correspondence_id = ?
        ORDER BY cs.signed_at ASC`,
-      [req.params.id]
+      [id]
     );
-    
-    // جلب التعليقات
+
     const [comments] = await pool.query(
       `SELECT com.*, u.full_name as commenter_name
        FROM comments com
        LEFT JOIN users u ON com.user_id = u.id
        WHERE com.correspondence_id = ?
        ORDER BY com.created_at DESC`,
-      [req.params.id]
+      [id]
+    );
+
+    const [ccList] = await pool.query(
+      'SELECT * FROM correspondence_cc WHERE correspondence_id = ?',
+      [id]
     );
 
     res.json({
       success: true,
-      data: { 
-        ...correspondences[0], 
-        attachments, 
+      data: {
+        ...rows[0],
+        attachments,
         signatures,
-        comments 
+        comments,
+        cc_list: ccList
       }
     });
   } catch (error) {
@@ -1079,7 +932,7 @@ app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// إنشاء مراسلة جديدة (مع رفع ملف اختياري)
+// إنشاء مراسلة جديدة (رفع ملف اختياري)
 app.post('/api/correspondences', authenticateToken, upload.single('template_file'), async (req, res) => {
   try {
     const {
@@ -1101,18 +954,14 @@ app.post('/api/correspondences', authenticateToken, upload.single('template_file
       corr_number = manualCorrNumber;
     } else {
       const year = new Date().getFullYear();
-      const [lastCorr] = await pool.query(
-        'SELECT corr_number FROM correspondences ORDER BY id DESC LIMIT 1'
-      );
-      
+      const [lastCorr] = await pool.query('SELECT corr_number FROM correspondences ORDER BY id DESC LIMIT 1');
+
       let nextNumber = 1;
       if (lastCorr.length > 0 && lastCorr[0].corr_number) {
-        const parts = lastCorr[0].corr_number.split('/');
-        if (parts.length > 0) {
-          nextNumber = parseInt(parts[0]) + 1;
-        }
+        const parts = String(lastCorr[0].corr_number).split('/');
+        if (parts.length > 0 && !isNaN(parseInt(parts[0]))) nextNumber = parseInt(parts[0]) + 1;
       }
-      
+
       corr_number = `${nextNumber}/${year}`;
     }
 
@@ -1124,12 +973,12 @@ app.post('/api/correspondences', authenticateToken, upload.single('template_file
     let sender_division_id = null;
     let sender_department_id = null;
     let sender_school_id = null;
-    
+
     const [senderInfo] = await pool.query(
       'SELECT division_id, department_id, school_id FROM users WHERE id = ?',
       [req.user.id]
     );
-    
+
     if (senderInfo.length > 0) {
       if (senderInfo[0].division_id) {
         sender_type = 'division';
@@ -1143,9 +992,8 @@ app.post('/api/correspondences', authenticateToken, upload.single('template_file
       }
     }
 
-    // إدراج المراسلة
     const [result] = await pool.query(
-      `INSERT INTO correspondences 
+      `INSERT INTO correspondences
        (corr_number, corr_type, subject, content, priority, status,
         sender_id, sender_type, sender_division_id, sender_department_id, sender_school_id,
         receiver_id, current_handler_id, created_at)
@@ -1161,11 +1009,10 @@ app.post('/api/correspondences', authenticateToken, upload.single('template_file
 
     // حفظ الملف المرفق
     if (req.file) {
-      // حفظ المسار النسبي فقط (بدون uploads/)
-      const relativePath = req.file.path.replace(/^uploads[\/\\]/, '');
-      
+      const relativePath = toRelativeUploadPath(req.file.path);
+
       await pool.query(
-        `INSERT INTO correspondence_attachments 
+        `INSERT INTO correspondence_attachments
          (correspondence_id, file_name, file_path, file_size, file_type, uploaded_by)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
@@ -1180,9 +1027,8 @@ app.post('/api/correspondences', authenticateToken, upload.single('template_file
     }
 
     // حفظ نسخة إلى (CC)
-    if (cc && cc.length > 0) {
+    if (cc && (Array.isArray(cc) ? cc.length : true)) {
       const ccArray = Array.isArray(cc) ? cc : [cc];
-      
       for (const recipient of ccArray) {
         await pool.query(
           `INSERT INTO correspondence_cc (correspondence_id, recipient_type, recipient_id, recipient_name)
@@ -1192,16 +1038,13 @@ app.post('/api/correspondences', authenticateToken, upload.single('template_file
       }
     }
 
-    // إنشاء مراحل سير العمل التلقائي
     await createWorkflowStages(correspondenceId, req.user.id, sender_division_id, sender_department_id, recipient_id);
 
     await logAudit(req.user.id, 'CREATE', 'correspondences', correspondenceId, { subject });
-    
-    // Clear cache
     cache.clear();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'تم إنشاء المراسلة وإرسالها للاعتماد بنجاح',
       data: { id: correspondenceId, corr_number }
     });
@@ -1216,34 +1059,21 @@ app.put('/api/correspondences/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { subject, content, priority, status } = req.body;
-    
-    // التحقق من الصلاحية
-    const [corr] = await pool.query(
-      'SELECT sender_id, status FROM correspondences WHERE id = ?',
-      [id]
-    );
-    
-    if (corr.length === 0) {
-      return res.status(404).json({ error: 'المراسلة غير موجودة' });
-    }
-    
-    if (corr[0].sender_id !== req.user.id && req.user.level > 2) {
-      return res.status(403).json({ error: 'غير مصرح لك' });
-    }
-    
-    if (corr[0].status !== 'draft') {
-      return res.status(400).json({ error: 'لا يمكن تعديل مراسلة تم إرسالها' });
-    }
+
+    const [corr] = await pool.query('SELECT sender_id, status FROM correspondences WHERE id = ?', [id]);
+    if (corr.length === 0) return res.status(404).json({ error: 'المراسلة غير موجودة' });
+
+    if (corr[0].sender_id !== req.user.id && req.user.level > 2) return res.status(403).json({ error: 'غير مصرح لك' });
+    if (corr[0].status !== 'draft') return res.status(400).json({ error: 'لا يمكن تعديل مراسلة تم إرسالها' });
 
     await pool.query(
-      `UPDATE correspondences 
+      `UPDATE correspondences
        SET subject = ?, content = ?, priority = ?, status = ?, updated_at = NOW()
        WHERE id = ?`,
       [subject, content, priority, status || 'draft', id]
     );
 
     await logAudit(req.user.id, 'UPDATE', 'correspondences', id, { subject, priority, status });
-
     res.json({ success: true, message: 'تم تحديث المراسلة بنجاح' });
   } catch (error) {
     console.error(error);
@@ -1255,34 +1085,35 @@ app.put('/api/correspondences/:id', authenticateToken, async (req, res) => {
 app.delete('/api/correspondences/:id', authenticateToken, checkPermission(2), async (req, res) => {
   try {
     const { id } = req.params;
-    
-    const [corr] = await pool.query(
-      'SELECT sender_id, corr_number FROM correspondences WHERE id = ?',
-      [id]
-    );
-    
-    if (corr.length === 0) {
-      return res.status(404).json({ error: 'المراسلة غير موجودة' });
-    }
+
+    const [corr] = await pool.query('SELECT sender_id, corr_number FROM correspondences WHERE id = ?', [id]);
+    if (corr.length === 0) return res.status(404).json({ error: 'المراسلة غير موجودة' });
 
     // حذف المرفقات من القرص
     const [attachments] = await pool.query(
-      'SELECT file_path FROM attachments WHERE correspondence_id = ?',
+      'SELECT file_path FROM correspondence_attachments WHERE correspondence_id = ?',
       [id]
     );
-    
+
     for (const att of attachments) {
       try {
-        await fs.unlink(att.file_path);
+        const fullPath = toFullUploadPath(att.file_path);
+        if (fullPath) await fs.unlink(fullPath);
       } catch (err) {
         console.error('Error deleting file:', err);
       }
     }
 
-    // حذف من قاعدة البيانات
+    // حذف من قاعدة البيانات (إذا عندك ON DELETE CASCADE تقدر تشيل هذني)
+    await pool.query('DELETE FROM correspondence_attachments WHERE correspondence_id = ?', [id]);
+    await pool.query('DELETE FROM correspondence_cc WHERE correspondence_id = ?', [id]);
+    await pool.query('DELETE FROM comments WHERE correspondence_id = ?', [id]);
+    await pool.query('DELETE FROM workflow_stages WHERE correspondence_id = ?', [id]);
+
     await pool.query('DELETE FROM correspondences WHERE id = ?', [id]);
-    
+
     await logAudit(req.user.id, 'DELETE', 'correspondences', id, { corr_number: corr[0].corr_number });
+    cache.clear();
 
     res.json({ success: true, message: 'تم حذف المراسلة بنجاح' });
   } catch (error) {
@@ -1295,15 +1126,16 @@ app.delete('/api/correspondences/:id', authenticateToken, checkPermission(2), as
 app.post('/api/correspondences/:id/archive', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     await pool.query(
-      `UPDATE correspondences 
+      `UPDATE correspondences
        SET archived = 1, archive_date = NOW(), archived_by = ?
        WHERE id = ?`,
       [req.user.id, id]
     );
-    
+
     await logAudit(req.user.id, 'ARCHIVE', 'correspondences', id);
+    cache.clear();
 
     res.json({ success: true, message: 'تم أرشفة المراسلة بنجاح' });
   } catch (error) {
@@ -1313,39 +1145,31 @@ app.post('/api/correspondences/:id/archive', authenticateToken, async (req, res)
 });
 
 // ================================================
-// ATTACHMENTS ROUTES
+// ATTACHMENTS ROUTES (موحّدة على correspondence_attachments)
 // ================================================
 
 // رفع مرفق
 app.post('/api/correspondences/:id/attachments', authenticateToken, upload.single('file'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'لم يتم رفع أي ملف' });
-    }
+    if (!req.file) return res.status(400).json({ error: 'لم يتم رفع أي ملف' });
 
     const { id } = req.params;
-    
+    const relativePath = toRelativeUploadPath(req.file.path);
+
     const [result] = await pool.query(
-      `INSERT INTO attachments 
+      `INSERT INTO correspondence_attachments
        (correspondence_id, file_name, file_type, file_size, file_path, uploaded_by)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        req.file.originalname,
-        req.file.mimetype,
-        req.file.size,
-        req.file.path,
-        req.user.id
-      ]
+      [id, req.file.originalname, req.file.mimetype, req.file.size, relativePath, req.user.id]
     );
 
-    await logAudit(req.user.id, 'UPLOAD', 'attachments', result.insertId, { 
+    await logAudit(req.user.id, 'UPLOAD', 'correspondence_attachments', result.insertId, {
       correspondence_id: id,
-      file_name: req.file.originalname 
+      file_name: req.file.originalname
     });
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'تم رفع الملف بنجاح',
       data: {
         id: result.insertId,
@@ -1363,29 +1187,28 @@ app.post('/api/correspondences/:id/attachments', authenticateToken, upload.singl
 app.delete('/api/attachments/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const [attachments] = await pool.query(
-      'SELECT file_path, correspondence_id FROM attachments WHERE id = ?',
+      'SELECT file_path, correspondence_id FROM correspondence_attachments WHERE id = ?',
       [id]
     );
-    
-    if (attachments.length === 0) {
-      return res.status(404).json({ error: 'المرفق غير موجود' });
-    }
-    
-    // حذف الملف من القرص
+
+    if (attachments.length === 0) return res.status(404).json({ error: 'المرفق غير موجود' });
+
     try {
-      await fs.unlink(attachments[0].file_path);
+      const fullPath = toFullUploadPath(attachments[0].file_path);
+      if (fullPath) await fs.unlink(fullPath);
     } catch (err) {
       console.error('Error deleting file:', err);
     }
-    
-    await pool.query('DELETE FROM attachments WHERE id = ?', [id]);
-    
-    await logAudit(req.user.id, 'DELETE', 'attachments', id, {
+
+    await pool.query('DELETE FROM correspondence_attachments WHERE id = ?', [id]);
+
+    await logAudit(req.user.id, 'DELETE', 'correspondence_attachments', id, {
       correspondence_id: attachments[0].correspondence_id
     });
 
+    cache.clear();
     res.json({ success: true, message: 'تم حذف المرفق بنجاح' });
   } catch (error) {
     console.error(error);
@@ -1397,29 +1220,40 @@ app.delete('/api/attachments/:id', authenticateToken, async (req, res) => {
 app.get('/api/attachments/:id/download', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const [attachments] = await pool.query(
-      'SELECT file_path, file_name FROM attachments WHERE id = ?',
+      'SELECT file_path, file_name FROM correspondence_attachments WHERE id = ?',
       [id]
     );
-    
-    if (attachments.length === 0) {
-      return res.status(404).json({ error: 'المرفق غير موجود' });
-    }
-    
-    res.download(attachments[0].file_path, attachments[0].file_name);
+
+    if (attachments.length === 0) return res.status(404).json({ error: 'المرفق غير موجود' });
+
+    const fullPath = toFullUploadPath(attachments[0].file_path);
+    return res.download(fullPath, attachments[0].file_name);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'فشل التحميل' });
   }
 });
 
+// جلب مرفقات مراسلة
+app.get('/api/correspondences/:id/attachments', authenticateToken, async (req, res) => {
+  try {
+    const [attachments] = await pool.query(
+      'SELECT * FROM correspondence_attachments WHERE correspondence_id = ?',
+      [req.params.id]
+    );
+
+    res.json({ success: true, data: attachments });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'فشل تحميل المرفقات' });
+  }
+});
+
 // ================================================
 // SIGNATURES ROUTES
 // ================================================
-
-// التوقيع على مراسلة
-// جلب توقيعات مراسلة
 app.get('/api/correspondences/:id/signatures', authenticateToken, async (req, res) => {
   try {
     const [signatures] = await pool.query(
@@ -1442,44 +1276,38 @@ app.get('/api/correspondences/:id/signatures', authenticateToken, async (req, re
 // ================================================
 // COMMENTS ROUTES
 // ================================================
-
-// إضافة تعليق
 app.post('/api/correspondences/:id/comments', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { comment_text } = req.body;
-    
+
     const [result] = await pool.query(
       `INSERT INTO comments (correspondence_id, user_id, comment_text)
        VALUES (?, ?, ?)`,
       [id, req.user.id, comment_text]
     );
-    
+
     await logAudit(req.user.id, 'COMMENT', 'comments', result.insertId, { correspondence_id: id });
-    
-    res.json({ 
-      success: true, 
-      message: 'تم إضافة التعليق بنجاح',
-      data: { id: result.insertId }
-    });
+
+    res.json({ success: true, message: 'تم إضافة التعليق بنجاح', data: { id: result.insertId } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'فشل إضافة التعليق' });
   }
 });
 
-// جلب تعليقات مراسلة
 app.get('/api/correspondences/:id/comments', authenticateToken, async (req, res) => {
   try {
     const [comments] = await pool.query(
-      `SELECT c.*, u.full_name as commenter_name, u.role_name_ar
+      `SELECT c.*, u.full_name as commenter_name, r.role_name_ar
        FROM comments c
        LEFT JOIN users u ON c.user_id = u.id
+       LEFT JOIN roles r ON u.role_id = r.id
        WHERE c.correspondence_id = ?
        ORDER BY c.created_at DESC`,
       [req.params.id]
     );
-    
+
     res.json({ success: true, data: comments });
   } catch (error) {
     console.error(error);
@@ -1490,18 +1318,16 @@ app.get('/api/correspondences/:id/comments', authenticateToken, async (req, res)
 // ================================================
 // NOTIFICATIONS ROUTES
 // ================================================
-
-// جلب إشعارات المستخدم
 app.get('/api/notifications', authenticateToken, async (req, res) => {
   try {
     const [notifications] = await pool.query(
-      `SELECT * FROM notifications 
-       WHERE user_id = ? 
-       ORDER BY created_at DESC 
+      `SELECT * FROM notifications
+       WHERE user_id = ?
+       ORDER BY created_at DESC
        LIMIT 50`,
       [req.user.id]
     );
-    
+
     res.json({ success: true, data: notifications });
   } catch (error) {
     console.error(error);
@@ -1509,14 +1335,9 @@ app.get('/api/notifications', authenticateToken, async (req, res) => {
   }
 });
 
-// تعليم إشعار كمقروء
 app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
   try {
-    await pool.query(
-      'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
-      [req.params.id, req.user.id]
-    );
-    
+    await pool.query('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     res.json({ success: true, message: 'تم التحديث' });
   } catch (error) {
     console.error(error);
@@ -1524,14 +1345,9 @@ app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
   }
 });
 
-// تعليم جميع الإشعارات كمقروءة
 app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
   try {
-    await pool.query(
-      'UPDATE notifications SET is_read = 1 WHERE user_id = ?',
-      [req.user.id]
-    );
-    
+    await pool.query('UPDATE notifications SET is_read = 1 WHERE user_id = ?', [req.user.id]);
     res.json({ success: true, message: 'تم تحديث جميع الإشعارات' });
   } catch (error) {
     console.error(error);
@@ -1542,8 +1358,6 @@ app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
 // ================================================
 // TEMPLATES ROUTES
 // ================================================
-
-// جلب جميع القوالب
 app.get('/api/templates', authenticateToken, async (req, res) => {
   try {
     const [templates] = await pool.query(
@@ -1553,7 +1367,7 @@ app.get('/api/templates', authenticateToken, async (req, res) => {
        WHERE t.is_active = 1
        ORDER BY t.created_at DESC`
     );
-    
+
     res.json({ success: true, data: templates });
   } catch (error) {
     console.error(error);
@@ -1561,18 +1375,10 @@ app.get('/api/templates', authenticateToken, async (req, res) => {
   }
 });
 
-// جلب قالب واحد
 app.get('/api/templates/:id', authenticateToken, async (req, res) => {
   try {
-    const [templates] = await pool.query(
-      'SELECT * FROM templates WHERE id = ?',
-      [req.params.id]
-    );
-    
-    if (templates.length === 0) {
-      return res.status(404).json({ error: 'القالب غير موجود' });
-    }
-    
+    const [templates] = await pool.query('SELECT * FROM templates WHERE id = ?', [req.params.id]);
+    if (templates.length === 0) return res.status(404).json({ error: 'القالب غير موجود' });
     res.json({ success: true, data: templates[0] });
   } catch (error) {
     console.error(error);
@@ -1583,53 +1389,20 @@ app.get('/api/templates/:id', authenticateToken, async (req, res) => {
 // ================================================
 // STATISTICS ROUTES
 // ================================================
-
-// إحصائيات عامة
 app.get('/api/statistics', authenticateToken, async (req, res) => {
   try {
-    // عدد المراسلات
-    const [totalCorr] = await pool.query(
-      'SELECT COUNT(*) as total FROM correspondences'
-    );
-    
-    // عدد المراسلات حسب الحالة
-    const [statusCounts] = await pool.query(
-      `SELECT status, COUNT(*) as count 
-       FROM correspondences 
-       GROUP BY status`
-    );
-    
-    // عدد المراسلات حسب الأولوية
-    const [priorityCounts] = await pool.query(
-      `SELECT priority, COUNT(*) as count 
-       FROM correspondences 
-       GROUP BY priority`
-    );
-    
-    // المراسلات اليوم
-    const [todayCorr] = await pool.query(
-      `SELECT COUNT(*) as count 
-       FROM correspondences 
-       WHERE DATE(created_at) = CURDATE()`
-    );
-    
-    // المراسلات هذا الشهر
+    const [totalCorr] = await pool.query('SELECT COUNT(*) as total FROM correspondences');
+    const [statusCounts] = await pool.query('SELECT status, COUNT(*) as count FROM correspondences GROUP BY status');
+    const [priorityCounts] = await pool.query('SELECT priority, COUNT(*) as count FROM correspondences GROUP BY priority');
+    const [todayCorr] = await pool.query('SELECT COUNT(*) as count FROM correspondences WHERE DATE(created_at) = CURDATE()');
     const [monthCorr] = await pool.query(
-      `SELECT COUNT(*) as count 
-       FROM correspondences 
-       WHERE MONTH(created_at) = MONTH(CURDATE()) 
-       AND YEAR(created_at) = YEAR(CURDATE())`
+      `SELECT COUNT(*) as count FROM correspondences
+       WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())`
     );
-    
-    // المراسلات المتأخرة
     const [overdueCorr] = await pool.query(
-      `SELECT COUNT(*) as count 
-       FROM correspondences 
-       WHERE due_date < CURDATE() 
-       AND status NOT IN ('approved', 'rejected', 'archived')`
+      `SELECT COUNT(*) as count FROM correspondences
+       WHERE due_date < CURDATE() AND status NOT IN ('approved', 'rejected', 'archived')`
     );
-    
-    // أكثر المستخدمين نشاطاً
     const [activeUsers] = await pool.query(
       `SELECT u.full_name, COUNT(c.id) as count
        FROM users u
@@ -1638,7 +1411,7 @@ app.get('/api/statistics', authenticateToken, async (req, res) => {
        ORDER BY count DESC
        LIMIT 10`
     );
-    
+
     res.json({
       success: true,
       data: {
@@ -1657,31 +1430,15 @@ app.get('/api/statistics', authenticateToken, async (req, res) => {
   }
 });
 
-// إحصائيات المستخدم
 app.get('/api/statistics/user/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    // التحقق من الصلاحية
-    if (req.user.id != userId && req.user.level > 2) {
-      return res.status(403).json({ error: 'غير مصرح لك' });
-    }
-    
-    const [sent] = await pool.query(
-      'SELECT COUNT(*) as count FROM correspondences WHERE sender_id = ?',
-      [userId]
-    );
-    
-    const [received] = await pool.query(
-      'SELECT COUNT(*) as count FROM correspondences WHERE receiver_id = ?',
-      [userId]
-    );
-    
-    const [signatures] = await pool.query(
-      'SELECT COUNT(*) as count FROM correspondence_signatures WHERE user_id = ?',
-      [userId]
-    );
-    
+    if (req.user.id != userId && req.user.level > 2) return res.status(403).json({ error: 'غير مصرح لك' });
+
+    const [sent] = await pool.query('SELECT COUNT(*) as count FROM correspondences WHERE sender_id = ?', [userId]);
+    const [received] = await pool.query('SELECT COUNT(*) as count FROM correspondences WHERE receiver_id = ?', [userId]);
+    const [signatures] = await pool.query('SELECT COUNT(*) as count FROM correspondence_signatures WHERE user_id = ?', [userId]);
+
     res.json({
       success: true,
       data: {
@@ -1699,32 +1456,29 @@ app.get('/api/statistics/user/:userId', authenticateToken, async (req, res) => {
 // ================================================
 // AUDIT LOGS ROUTES
 // ================================================
-
-// جلب سجل العمليات
 app.get('/api/audit-logs', authenticateToken, checkPermission(2), async (req, res) => {
   try {
-    const { page = 1, limit = 50 } = req.query;
+    const page = parseInt(req.query.page || '1');
+    const limit = parseInt(req.query.limit || '50');
     const offset = (page - 1) * limit;
-    
+
     const [logs] = await pool.query(
       `SELECT al.*, u.full_name as user_name
        FROM audit_logs al
        LEFT JOIN users u ON al.user_id = u.id
        ORDER BY al.created_at DESC
        LIMIT ? OFFSET ?`,
-      [parseInt(limit), offset]
+      [limit, offset]
     );
-    
-    const [countResult] = await pool.query(
-      'SELECT COUNT(*) as total FROM audit_logs'
-    );
-    
+
+    const [countResult] = await pool.query('SELECT COUNT(*) as total FROM audit_logs');
+
     res.json({
       success: true,
       data: logs,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page,
+        limit,
         total: countResult[0].total,
         pages: Math.ceil(countResult[0].total / limit)
       }
@@ -1736,81 +1490,9 @@ app.get('/api/audit-logs', authenticateToken, checkPermission(2), async (req, re
 });
 
 // ================================================
-// ERROR HANDLING
-// ================================================
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'حدث خطأ في الخادم' });
-});
-
-// ================================================
-// STATIC FILES & HTML ROUTES
-// ================================================
-
-// تقديم الملفات الثابتة (HTML, CSS, JS)
-app.use(express.static('public'));
-
-// Route للصفحة الرئيسية
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Route لصفحة تسجيل الدخول
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-// Route للوحة التحكم
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-// Route لإدارة النظام
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-// Route للمراسلات
-app.get('/correspondences', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'inbox.html'));
-});
-
-// Route لإنشاء مراسلة جديدة
-app.get('/new-correspondence', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'new-correspondence.html'));
-});
-
-// Route لتفاصيل المراسلة
-app.get('/correspondence/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'correspondence-details.html'));
-});
-
-// Route للأرشيف
-app.get('/archive', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'archive.html'));
-});
-
-// Route للتقارير
-app.get('/reports', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'reports.html'));
-});
-
-// Route لسجل التوقيعات
-app.get('/signatures', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'signatures-log.html'));
-});
-
-// Route لإعدادات الحساب
-app.get('/account-settings', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'account-settings.html'));
-});
-
-// ================================================
 // CORRESPONDENCE WORKFLOW & SIGNATURE APIS
 // ================================================
 
-// Get correspondence workflow stages
 app.get('/api/correspondences/:id/workflow', authenticateToken, async (req, res) => {
   try {
     const [stages] = await pool.query(
@@ -1822,7 +1504,7 @@ app.get('/api/correspondences/:id/workflow', authenticateToken, async (req, res)
        ORDER BY ws.stage_order ASC`,
       [req.params.id]
     );
-    
+
     res.json({ success: true, data: stages });
   } catch (error) {
     console.error(error);
@@ -1830,167 +1512,118 @@ app.get('/api/correspondences/:id/workflow', authenticateToken, async (req, res)
   }
 });
 
-// Get correspondence attachments
-app.get('/api/correspondences/:id/attachments', authenticateToken, async (req, res) => {
-  try {
-    const [attachments] = await pool.query(
-      'SELECT * FROM correspondence_attachments WHERE correspondence_id = ?',
-      [req.params.id]
-    );
-    
-    res.json({ success: true, data: attachments });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'فشل تحميل المرفقات' });
-  }
-});
-
-// Sign correspondence (approve/reject current stage)
+// ✅ توقيع (approve / reject) - مصحّح
 app.post('/api/correspondences/:id/sign', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { decision, notes, signature_data } = req.body;
-  
+  const { decision, notes } = req.body;
+
   try {
-    // Get current workflow stage for this user
     const [stages] = await pool.query(
-      `SELECT * FROM workflow_stages 
+      `SELECT * FROM workflow_stages
        WHERE correspondence_id = ? AND assigned_to = ? AND status = 'pending'
        ORDER BY stage_order ASC LIMIT 1`,
       [id, req.user.id]
     );
-    
-    if (stages.length === 0) {
-      return res.status(403).json({ error: 'ليس لديك صلاحية التوقيع على هذه المراسلة' });
-    }
-    
+
+    if (stages.length === 0) return res.status(403).json({ error: 'ليس لديك صلاحية التوقيع على هذه المراسلة' });
+
     const currentStage = stages[0];
-    
-    // Update current stage (only status, notes, decision - no signature_data in workflow_stages)
+    const stageStatus = (decision === 'مرفوض') ? 'rejected' : 'approved';
+
     await pool.query(
-      `UPDATE workflow_stages 
-       SET status = 'approved', completed_at = NOW(), 
-           notes = ?, decision = ?
+      `UPDATE workflow_stages
+       SET status = ?, completed_at = NOW(), notes = ?, decision = ?
        WHERE id = ?`,
-      [notes, decision, currentStage.id]
+      [stageStatus, notes, decision, currentStage.id]
     );
-    
+
+    // إذا مرفوض: ننهي مباشرة
+    if (decision === 'مرفوض') {
+      await pool.query('UPDATE correspondences SET status = ?, updated_at = NOW() WHERE id = ?', ['rejected', id]);
+      await logAudit(req.user.id, 'SIGN', 'correspondences', id, { decision, notes });
+      cache.clear();
+      return res.json({ success: true, message: 'تم رفض المراسلة', decision });
+    }
+
     // Get next stage
     const [nextStages] = await pool.query(
-      `SELECT * FROM workflow_stages 
+      `SELECT * FROM workflow_stages
        WHERE correspondence_id = ? AND stage_order > ?
        ORDER BY stage_order ASC LIMIT 1`,
       [id, currentStage.stage_order]
     );
-    
+
     if (nextStages.length > 0) {
-      // Activate next stage
-      await pool.query(
-        'UPDATE workflow_stages SET status = ? WHERE id = ?',
-        ['pending', nextStages[0].id]
-      );
-      
-      // Update correspondence handler
-      await pool.query(
-        'UPDATE correspondences SET current_handler_id = ? WHERE id = ?',
-        [nextStages[0].assigned_to, id]
-      );
-      
-      // Create notification for next handler
+      await pool.query('UPDATE workflow_stages SET status = ? WHERE id = ?', ['pending', nextStages[0].id]);
+      await pool.query('UPDATE correspondences SET current_handler_id = ?, updated_at = NOW() WHERE id = ?', [nextStages[0].assigned_to, id]);
+
       await createNotification(
         nextStages[0].assigned_to,
         'approval_needed',
         'مراسلة تنتظر اعتمادك',
-        `لديك مراسلة جديدة تنتظر الاعتماد`,
+        'لديك مراسلة جديدة تنتظر الاعتماد',
         id,
         'correspondence'
       );
     } else {
-      // This was the last stage - mark correspondence as completed
-      const finalStatus = decision === 'مرفوض' ? 'rejected' : 'approved';
-      await pool.query(
-        'UPDATE correspondences SET status = ?, updated_at = NOW() WHERE id = ?',
-        [finalStatus, id]
-      );
-      
-      // If approved and has CC recipients, send notifications
-      if (finalStatus === 'approved') {
-        const [ccList] = await pool.query(
-          'SELECT * FROM correspondence_cc WHERE correspondence_id = ?',
-          [id]
-        );
-        
-        for (const cc of ccList) {
-          if (cc.recipient_type === 'user' && cc.recipient_id) {
-            await createNotification(
-              cc.recipient_id,
-              'new_correspondence',
-              'نسخة من مراسلة',
-              'تم إرسال نسخة من مراسلة إليك',
-              id,
-              'correspondence'
-            );
-          }
+      // last stage
+      await pool.query('UPDATE correspondences SET status = ?, updated_at = NOW() WHERE id = ?', ['approved', id]);
+
+      // notify CC users (لو عندك recipient_type = user)
+      const [ccList] = await pool.query('SELECT * FROM correspondence_cc WHERE correspondence_id = ?', [id]);
+      for (const cc of ccList) {
+        if (cc.recipient_type === 'user' && cc.recipient_id) {
+          await createNotification(
+            cc.recipient_id,
+            'new_correspondence',
+            'نسخة من مراسلة',
+            'تم إرسال نسخة من مراسلة إليك',
+            id,
+            'correspondence'
+          );
         }
       }
     }
-    
+
     await logAudit(req.user.id, 'SIGN', 'correspondences', id, { decision, notes });
-    
-    // Clear cache
     cache.clear();
-    
-    res.json({ 
-      success: true, 
-      message: 'تم التوقيع والاعتماد بنجاح',
-      decision 
-    });
-    
+
+    res.json({ success: true, message: 'تم التوقيع والاعتماد بنجاح', decision });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'فشل التوقيع: ' + error.message });
   }
 });
 
-// Get single correspondence with full details
-app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
-  try {
-    const [correspondences] = await pool.query(
-      `SELECT c.*, 
-              sender.full_name as sender_name,
-              receiver.full_name as receiver_name,
-              handler.full_name as handler_name
-       FROM correspondences c
-       LEFT JOIN users sender ON c.sender_id = sender.id
-       LEFT JOIN users receiver ON c.receiver_id = receiver.id
-       LEFT JOIN users handler ON c.current_handler_id = handler.id
-       WHERE c.id = ?`,
-      [req.params.id]
-    );
-    
-    if (correspondences.length === 0) {
-      return res.status(404).json({ error: 'المراسلة غير موجودة' });
-    }
-    
-    // Get CC list
-    const [ccList] = await pool.query(
-      'SELECT * FROM correspondence_cc WHERE correspondence_id = ?',
-      [req.params.id]
-    );
-    
-    correspondences[0].cc_list = ccList;
-    
-    res.json({ success: true, data: correspondences[0] });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'فشل تحميل المراسلة' });
-  }
+// ================================================
+// STATIC FILES & HTML ROUTES
+// ================================================
+app.use(express.static('public'));
+
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/correspondences', (req, res) => res.sendFile(path.join(__dirname, 'public', 'inbox.html')));
+app.get('/new-correspondence', (req, res) => res.sendFile(path.join(__dirname, 'public', 'new-correspondence.html')));
+app.get('/correspondence/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'correspondence-details.html')));
+app.get('/archive', (req, res) => res.sendFile(path.join(__dirname, 'public', 'archive.html')));
+app.get('/reports', (req, res) => res.sendFile(path.join(__dirname, 'public', 'reports.html')));
+app.get('/signatures', (req, res) => res.sendFile(path.join(__dirname, 'public', 'signatures-log.html')));
+app.get('/account-settings', (req, res) => res.sendFile(path.join(__dirname, 'public', 'account-settings.html')));
+
+// ================================================
+// ERROR HANDLING (لازم يكون آخر شي)
+// ================================================
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message || 'حدث خطأ في الخادم' });
 });
 
 // ================================================
 // START SERVER
 // ================================================
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, '0.0.0.0', () => console.log('🚀 Server running on', PORT));
 
 module.exports = app;
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, "0.0.0.0", () => console.log("🚀 Server running on", PORT));
