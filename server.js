@@ -1,4 +1,8 @@
 const express = require('express');
+console.log("🟦 BOOT: server.js loaded");
+console.log("🟦 ENV MYSQL_URL exists?", !!process.env.MYSQL_URL);
+console.log("🟦 ENV MYSQL_URL preview:", (process.env.MYSQL_URL || "").slice(0, 35) + "...");
+
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -103,29 +107,35 @@ function rateLimit(maxRequests = 100, windowMs = 60000) {
 app.use('/api/', rateLimit(200, 60000)); // 200 طلب في الدقيقة
 // app.use('/api/auth/login', rateLimit(20, 60000)); // معطّل للتطوير
 
-// Database connection pool - محسّن للأداء العالي
+// ================================================
+// Database connection pool (Render + Railway Public URL)
+// ================================================
+console.log("✅ MYSQL_URL exists?", !!process.env.MYSQL_URL);
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '123123',
-  database: process.env.DB_NAME || 'correspondence_system',
+  uri: process.env.MYSQL_URL,          // ✅ Render ENV: MYSQL_URL (Railway MYSQL_PUBLIC_URL)
   waitForConnections: true,
-  connectionLimit: 50,        // 50 اتصال متزامن (يدعم حتى 200 مستخدم)
-  queueLimit: 0,              // لا حد أقصى للطابور
-  connectTimeout: 10000,      // 10 ثواني timeout للاتصال
-  enableKeepAlive: true,      // إبقاء الاتصالات نشطة
-  keepAliveInitialDelay: 0
+  connectionLimit: 10,
+  connectTimeout: 10000,
+  ssl: { rejectUnauthorized: false }
 });
 
-// Test database connection
-pool.getConnection()
-  .then(connection => {
-    console.log('✅ تم الاتصال بقاعدة البيانات بنجاح');
-    connection.release();
-  })
-  .catch(err => {
-    console.error('❌ خطأ في الاتصال بقاعدة البيانات:', err.message);
+// Test database connection (prints real reason if fails)
+pool.query("SELECT 1")
+  .then(() => console.log("✅ DB Connected"))
+  .catch((e) => {
+  console.error("❌ DB connect error:", {
+    code: e?.code,
+    errno: e?.errno,
+    sqlState: e?.sqlState,
+    message: e?.message,
+    host: e?.hostname,
+    address: e?.address,
+    port: e?.port
   });
+});
+
+
 
 // ================================================
 // HELPER FUNCTIONS
