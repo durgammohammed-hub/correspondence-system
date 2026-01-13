@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات الحساب - نظام المراسلات الإدارية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        .logo {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        }
+        .logo svg { width: 28px; height: 28px; color: white; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151;
+        }
+        
+        .container { max-width: 900px; margin: 0 auto; padding: 32px; }
+        
+        .profile-header {
+            background: white; border-radius: 16px; padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 100px; height: 100px; margin: 0 auto 16px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 40px; color: white; font-weight: 900;
+        }
+        
+        .profile-name { font-size: 24px; font-weight: 900; color: #111827; margin-bottom: 4px; }
+        .profile-role { font-size: 14px; color: #6b7280; font-weight: 600; }
+        
+        .card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;
+        }
+        
+        .card-title {
+            font-size: 18px; font-weight: 800; color: #111827; margin-bottom: 20px;
+            padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        .form-label {
+            display: block; font-size: 14px; font-weight: 700; color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .form-input {
+            width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none; border-color: #3b82f6; background: #f9fafb;
+        }
+        
+        .form-input:disabled {
+            background: #f3f4f6; color: #9ca3af; cursor: not-allowed;
+        }
+        
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        }
+        
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        
+        .btn-group { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        
+        .info-box {
+            background: #f0f9ff; padding: 16px; border-radius: 8px;
+            border-right: 4px solid #3b82f6; margin-bottom: 20px;
+        }
+        
+        .info-box-title {
+            font-weight: 700; color: #1e40af; margin-bottom: 8px; font-size: 14px;
+        }
+        
+        .info-box-text {
+            font-size: 13px; color: #1e40af;
+        }
+        
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center;
+        }
+        
+        .stat-value { font-size: 24px; font-weight: 900; color: #111827; margin-bottom: 4px; }
+        .stat-label { font-size: 12px; color: #6b7280; font-weight: 600; }
+        
+        .alert {
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;
+            font-size: 14px; font-weight: 600;
+        }
+        
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-error { background: #fee2e2; color: #991b1b; }
+        
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div class="logo">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <div>
+                <h1>نظام المراسلات الإدارية</h1>
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">إعدادات الحساب</div>
+            </div>
+        </div>
+        <button class="btn-back" onclick="window.location.href='dashboard.html'">← العودة</button>
+    </div>
+    
+    <div class="container">
+        <div id="alertBox"></div>
+        
+        <div class="profile-header">
+            <div class="profile-avatar" id="avatar">A</div>
+            <div class="profile-name" id="userName">المستخدم</div>
+            <div class="profile-role" id="userRole">...</div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalCorrs">0</div>
+                    <div class="stat-label">المراسلات</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSigs">0</div>
+                    <div class="stat-label">التوقيعات</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="memberSince">-</div>
+                    <div class="stat-label">عضو منذ</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="card-title">المعلومات الشخصية</h3>
+            
+            <form id="profileForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-input" id="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">اسم المستخدم</label>
+                        <input type="text" class="form-input" id="username" disabled>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input type="email" class="form-input" id="email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-input" id="phone">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">القسم / الشعبة</label>
+                    <input type="text" class="form-input" id="department" disabled>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">إلغاء</button>
+                    <button type="submit" class="btn btn-success">💾 حفظ التغييرات</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h3 class="card-title">تغيير كلمة المرور</h3>
+            
+            <div class="info-box">
+                <div class="info-box-title">🔒 نصائح لكلمة مرور قوية:</div>
+                <div class="info-box-text">
+                    • استخدم 8 أحرف على الأقل<br>
+                    • اجمع بين الأحرف والأرقام والرموز<br>
+                    • لا تستخدم معلومات شخصية واضحة
+                </div>
+            </div>
+            
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور الحالية</label>
+                    <input type="password" class="form-input" id="currentPassword" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">كلمة المرور الجديدة</label>
+                        <input type="password" class="form-input" id="newPassword" required minlength="6">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">تأكيد كلمة المرور</label>
+                        <input type="password" class="form-input" id="confirmPassword" required minlength="6">
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="resetPasswordForm()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">🔑 تغيير كلمة المرور</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h3 class="card-title">إدارة الجلسات</h3>
+            
+            <div class="info-box">
+                <div class="info-box-title">ℹ️ معلومات الجلسة الحالية</div>
+                <div class="info-box-text" id="sessionInfo">جاري التحميل...</div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-danger" onclick="logoutAllDevices()">🚪 تسجيل الخروج من جميع الأجهزة</button>
+                <button class="btn btn-secondary" onclick="logout()">تسجيل الخروج</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        async function loadUserData() {
+            console.log('🔄 بدء تحميل بيانات المستخدم...');
+            console.log('👤 User ID:', currentUser.id);
+            
+            try {
+                const response = await fetch(`${API_URL}/users/${currentUser.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                console.log('📡 Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const user = data.data;
+                    
+                    console.log('✅ تم تحميل البيانات:', user);
+                    
+                    // تحديث الصورة الرمزية
+                    document.getElementById('avatar').textContent = user.full_name.charAt(0);
+                    document.getElementById('userName').textContent = user.full_name;
+                    document.getElementById('userRole').textContent = user.role_name_ar || 'موظف';
+                    
+                    // ملء النموذج
+                    document.getElementById('fullName').value = user.full_name;
+                    document.getElementById('username').value = user.username;
+                    document.getElementById('email').value = user.email || '';
+                    document.getElementById('phone').value = user.phone || '';
+                    document.getElementById('department').value = user.dept_name || user.div_name || 'غير محدد';
+                    
+                    // الإحصائيات
+                    const memberSince = new Date(user.created_at);
+                    const months = Math.floor((new Date() - memberSince) / (1000 * 60 * 60 * 24 * 30));
+                    document.getElementById('memberSince').textContent = `${months} شهر`;
+                    
+                    // معلومات الجلسة
+                    document.getElementById('sessionInfo').innerHTML = `
+                        تسجيل الدخول: ${new Date().toLocaleString('ar-IQ')}<br>
+                        المتصفح: ${navigator.userAgent.split('(')[1].split(')')[0]}
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('خطأ في تحميل البيانات', 'error');
+            }
+        }
+        
+        // حفظ التعديلات
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            console.log('💾 محاولة حفظ التعديلات...');
+            
+            const data = {
+                full_name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value
+            };
+            
+            console.log('📝 البيانات المرسلة:', data);
+            
+            try {
+                const response = await fetch(`${API_URL}/users/${currentUser.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('📡 Response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ نجح الحفظ:', result);
+                    
+                    currentUser.full_name = data.full_name;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    showAlert('✅ تم حفظ التغييرات بنجاح', 'success');
+                    await loadUserData();
+                } else {
+                    const error = await response.json();
+                    console.error('❌ فشل الحفظ:', error);
+                    showAlert('❌ فشل حفظ التغييرات: ' + (error.error || ''), 'error');
+                }
+            } catch (error) {
+                console.error('❌ خطأ:', error);
+                showAlert('❌ خطأ في الاتصال', 'error');
+            }
+        });
+        
+        // تغيير كلمة المرور
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('❌ كلمات المرور غير متطابقة', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showAlert('❌ كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users/${currentUser.id}/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                
+                if (response.ok) {
+                    showAlert('✅ تم تغيير كلمة المرور بنجاح', 'success');
+                    resetPasswordForm();
+                } else {
+                    const data = await response.json();
+                    showAlert('❌ ' + (data.error || 'فشل تغيير كلمة المرور'), 'error');
+                }
+            } catch (error) {
+                showAlert('❌ خطأ في الاتصال', 'error');
+            }
+        });
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => { alertBox.innerHTML = ''; }, 5000);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function resetForm() {
+            loadUserData();
+        }
+        
+        function resetPasswordForm() {
+            document.getElementById('passwordForm').reset();
+        }
+        
+        function logout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
+        }
+        
+        async function logoutAllDevices() {
+            if (confirm('هل تريد تسجيل الخروج من جميع الأجهزة؟')) {
+                try {
+                    await fetch(`${API_URL}/logout-all`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    logout();
+                } catch (error) {
+                    showAlert('❌ خطأ في الاتصال', 'error');
+                }
+            }
+        }
+        
+        window.addEventListener('load', loadUserData);
+    </script>
+</body>
+</html>

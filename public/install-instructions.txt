@@ -1,0 +1,41 @@
+==============================================
+📋 تعليمات التثبيت الكاملة
+==============================================
+
+📂 الملفات المطلوبة:
+--------------------
+1. server.js (السيرفر مع التوقيعات)
+2. dashboard.html (8 بطاقات)
+3. admin.html (الإدارة)
+4. inbox.html (المراسلات)
+5. signatures-page.html (التوقيعات)
+6. account-settings.html (الإعدادات)
+7. correspondence-details.html (التفاصيل)
+
+⚙️ قاعدة البيانات:
+------------------
+تأكد من وجود جدول التوقيعات:
+
+CREATE TABLE IF NOT EXISTS correspondence_signatures (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  correspondence_id INT NOT NULL,
+  user_id INT NOT NULL,
+  decision VARCHAR(100) NOT NULL,
+  notes TEXT,
+  signed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (correspondence_id) REFERENCES correspondences(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+ALTER TABLE correspondences 
+ADD COLUMN IF NOT EXISTS current_handler_id INT,
+ADD FOREIGN KEY (current_handler_id) REFERENCES users(id);
+
+🚀 التشغيل:
+-----------
+1. انسخ جميع الملفات إلى C:\files
+2. npm start
+3. افتح dashboard.html
+
+✅ كل شي جاهز!

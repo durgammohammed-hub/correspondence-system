@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المراسلات - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151; text-decoration: none;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
+        
+        .page-header { 
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px; 
+        }
+        
+        .page-title { font-size: 28px; font-weight: 900; color: #111827; }
+        
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+            text-decoration: none; display: inline-block;
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-2px); }
+        
+        .tabs {
+            background: white; border-radius: 16px; padding: 10px;
+            margin-bottom: 24px; display: flex; gap: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .tab {
+            padding: 12px 24px; border-radius: 10px; border: none;
+            background: transparent; cursor: pointer;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #6b7280; transition: all 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        
+        .tab:hover { background: #f3f4f6; }
+        .tab.active { background: #3b82f6; color: white; }
+        
+        .tab-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px; border-radius: 12px;
+            font-size: 12px; font-weight: 700;
+        }
+        
+        .tab.active .tab-badge { background: rgba(255,255,255,0.3); }
+        
+        .card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .filters {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 24px; padding: 20px;
+            background: #f9fafb; border-radius: 12px;
+        }
+        
+        .filter-group label {
+            display: block; font-weight: 700; color: #374151;
+            margin-bottom: 8px; font-size: 13px;
+        }
+        
+        .form-control, .form-select {
+            width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-family: 'Tajawal', sans-serif;
+            font-size: 14px; transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .filter-actions {
+            display: flex; gap: 8px; align-items: flex-end;
+        }
+        
+        .btn-sm {
+            padding: 10px 16px; font-size: 13px;
+        }
+        
+        .btn-secondary {
+            background: #6b7280; color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        table {
+            width: 100%; border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 14px 12px; text-align: right;
+            border-bottom: 1px solid #e5e7eb; font-size: 13px;
+        }
+        
+        th {
+            background: #f9fafb; font-weight: 700;
+            color: #374151; position: sticky; top: 0;
+        }
+        
+        tbody tr {
+            transition: all 0.2s; cursor: pointer;
+        }
+        
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .badge {
+            padding: 4px 12px; border-radius: 12px;
+            font-size: 11px; font-weight: 700;
+            display: inline-block;
+        }
+        
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-urgent { background: #fee2e2; color: #991b1b; font-weight: 900; }
+        .badge-normal { background: #f3f4f6; color: #6b7280; }
+        
+        .corr-number {
+            font-weight: 700; color: #3b82f6;
+        }
+        
+        .corr-subject {
+            font-weight: 600; color: #111827;
+        }
+        
+        .action-btn {
+            background: #eff6ff; color: #3b82f6;
+            border: none; padding: 6px 12px;
+            border-radius: 6px; cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 12px; font-weight: 700;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: #3b82f6; color: white;
+        }
+        
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: #9ca3af;
+        }
+        
+        .empty-state svg {
+            width: 64px; height: 64px;
+            margin-bottom: 16px; opacity: 0.5;
+        }
+        
+        .loading {
+            text-align: center; padding: 40px;
+            color: #6b7280;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .table-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 20px;
+        }
+        
+        .results-count {
+            font-size: 14px; color: #6b7280;
+            font-weight: 600;
+        }
+        
+        .pagination {
+            display: flex; gap: 8px; justify-content: center;
+            margin-top: 24px;
+        }
+        
+        .page-btn {
+            padding: 8px 12px; border: 2px solid #e5e7eb;
+            background: white; border-radius: 6px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif;
+            font-size: 13px; font-weight: 700;
+            color: #374151; transition: all 0.3s;
+        }
+        
+        .page-btn:hover {
+            border-color: #3b82f6; color: #3b82f6;
+        }
+        
+        .page-btn.active {
+            background: #3b82f6; color: white;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 32px;">📋</div>
+            <h1>المراسلات</h1>
+        </div>
+        <a href="dashboard.html" class="btn-back">← العودة</a>
+    </div>
+    
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">إدارة المراسلات</div>
+            <a href="new-correspondence.html" class="btn btn-primary">+ مراسلة جديدة</a>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('inbox')" id="inboxTab">
+                📥 الوارد
+                <span class="tab-badge" id="inboxCount">0</span>
+            </button>
+            <button class="tab" onclick="switchTab('sent')" id="sentTab">
+                📤 الصادر
+                <span class="tab-badge" id="sentCount">0</span>
+            </button>
+            <button class="tab" onclick="switchTab('pending')" id="pendingTab">
+                ⏸️ قيد المعالجة
+                <span class="tab-badge" id="pendingCount">0</span>
+            </button>
+        </div>
+        
+        <!-- Main Card -->
+        <div class="card">
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label>البحث</label>
+                    <input type="text" class="form-control" id="searchInput" 
+                           placeholder="ابحث بالعنوان أو الرقم..." 
+                           onkeyup="applyFilters()">
+                </div>
+                
+                <div class="filter-group">
+                    <label>الحالة</label>
+                    <select class="form-select" id="statusFilter" onchange="applyFilters()">
+                        <option value="">الكل</option>
+                        <option value="pending">قيد المراجعة</option>
+                        <option value="in_progress">قيد المعالجة</option>
+                        <option value="approved">معتمدة</option>
+                        <option value="rejected">مرفوضة</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>الأولوية</label>
+                    <select class="form-select" id="priorityFilter" onchange="applyFilters()">
+                        <option value="">الكل</option>
+                        <option value="normal">عادي</option>
+                        <option value="urgent">عاجل</option>
+                        <option value="very_urgent">عاجل جداً</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>من تاريخ</label>
+                    <input type="date" class="form-control" id="dateFrom" onchange="applyFilters()">
+                </div>
+                
+                <div class="filter-group">
+                    <label>إلى تاريخ</label>
+                    <input type="date" class="form-control" id="dateTo" onchange="applyFilters()">
+                </div>
+                
+                <div class="filter-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="clearFilters()">
+                        مسح الفلاتر
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Table Header -->
+            <div class="table-header">
+                <div class="results-count" id="resultsCount">جاري التحميل...</div>
+            </div>
+            
+            <!-- Table -->
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">الرقم</th>
+                            <th>الموضوع</th>
+                            <th style="width: 150px;">المرسل</th>
+                            <th style="width: 100px;">الحالة</th>
+                            <th style="width: 100px;">الأولوية</th>
+                            <th style="width: 120px;">التاريخ</th>
+                            <th style="width: 100px;">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="correspondencesTable">
+                        <tr>
+                            <td colspan="7" class="loading">
+                                <div class="spinner"></div>
+                                جاري تحميل المراسلات...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        let allCorrespondences = [];
+        let filteredCorrespondences = [];
+        let currentTab = 'inbox';
+        
+        // Load data on page load
+        window.addEventListener('load', async () => {
+            console.log('🚀 بدء تحميل صفحة المراسلات...');
+            
+            // قراءة الفلاتر من URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusParam = urlParams.get('status');
+            const priorityParam = urlParams.get('priority');
+            
+            console.log('📎 معاملات URL:', { status: statusParam, priority: priorityParam });
+            
+            // تطبيق الفلاتر من URL
+            if (statusParam) {
+                document.getElementById('statusFilter').value = statusParam;
+                console.log('✅ تم تطبيق فلتر الحالة:', statusParam);
+            }
+            
+            if (priorityParam) {
+                document.getElementById('priorityFilter').value = priorityParam;
+                console.log('✅ تم تطبيق فلتر الأولوية:', priorityParam);
+            }
+            
+            await loadCorrespondences();
+        });
+        
+        // Load correspondences from API
+        async function loadCorrespondences() {
+            try {
+                console.log('📡 جلب المراسلات من API...');
+                
+                const response = await fetch(`${API_URL}/correspondences`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    allCorrespondences = data.data || [];
+                    console.log('✅ تم تحميل', allCorrespondences.length, 'مراسلة');
+                    
+                    updateTabCounts();
+                    applyFilters();
+                } else {
+                    throw new Error('فشل تحميل المراسلات');
+                }
+            } catch (error) {
+                console.error('❌ خطأ:', error);
+                document.getElementById('correspondencesTable').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state" style="color: #ef4444;">
+                            فشل تحميل البيانات: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // Switch between tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab styles
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+            
+            console.log('📑 تبديل إلى تبويب:', tab);
+            applyFilters();
+        }
+        
+        // Update tab counts
+        function updateTabCounts() {
+            const inbox = allCorrespondences.filter(c => 
+                c.receiver_id === user.id || c.current_handler_id === user.id
+            ).length;
+            
+            const sent = allCorrespondences.filter(c => 
+                c.sender_id === user.id
+            ).length;
+            
+            const pending = allCorrespondences.filter(c => 
+                c.current_handler_id === user.id && 
+                (c.status === 'pending' || c.status === 'in_progress')
+            ).length;
+            
+            document.getElementById('inboxCount').textContent = inbox;
+            document.getElementById('sentCount').textContent = sent;
+            document.getElementById('pendingCount').textContent = pending;
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const priority = document.getElementById('priorityFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            
+            // Filter by tab
+            let tabFiltered = [];
+            if (currentTab === 'inbox') {
+                tabFiltered = allCorrespondences.filter(c => 
+                    c.receiver_id === user.id || c.current_handler_id === user.id
+                );
+            } else if (currentTab === 'sent') {
+                tabFiltered = allCorrespondences.filter(c => 
+                    c.sender_id === user.id
+                );
+            } else if (currentTab === 'pending') {
+                tabFiltered = allCorrespondences.filter(c => 
+                    c.current_handler_id === user.id && 
+                    (c.status === 'pending' || c.status === 'in_progress')
+                );
+            }
+            
+            // Apply other filters
+            filteredCorrespondences = tabFiltered.filter(c => {
+                // Search
+                if (search && !c.subject.toLowerCase().includes(search) && 
+                    !c.corr_number.toLowerCase().includes(search)) {
+                    return false;
+                }
+                
+                // Status
+                if (status && c.status !== status) {
+                    return false;
+                }
+                
+                // Priority
+                if (priority && c.priority !== priority) {
+                    return false;
+                }
+                
+                // Date from
+                if (dateFrom && new Date(c.created_at) < new Date(dateFrom)) {
+                    return false;
+                }
+                
+                // Date to
+                if (dateTo && new Date(c.created_at) > new Date(dateTo)) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            console.log('🔍 عدد النتائج بعد الفلترة:', filteredCorrespondences.length);
+            displayCorrespondences();
+        }
+        
+        // Display correspondences in table
+        function displayCorrespondences() {
+            const tbody = document.getElementById('correspondencesTable');
+            
+            document.getElementById('resultsCount').textContent = 
+                `عرض ${filteredCorrespondences.length} من ${allCorrespondences.length} مراسلة`;
+            
+            if (filteredCorrespondences.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">
+                                لا توجد مراسلات
+                            </div>
+                            <div style="font-size: 14px;">
+                                لم يتم العثور على مراسلات تطابق معايير البحث
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = filteredCorrespondences.map(c => {
+                const statusBadge = getStatusBadge(c.status);
+                const priorityBadge = getPriorityBadge(c.priority);
+                const date = new Date(c.created_at).toLocaleDateString('ar-IQ');
+                const senderName = c.sender_name || 'غير محدد';
+                
+                return `
+                    <tr onclick="viewCorrespondence(${c.id})">
+                        <td><span class="corr-number">${c.corr_number}</span></td>
+                        <td><span class="corr-subject">${c.subject}</span></td>
+                        <td>${senderName}</td>
+                        <td>${statusBadge}</td>
+                        <td>${priorityBadge}</td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="action-btn" onclick="event.stopPropagation(); viewCorrespondence(${c.id})">
+                                عرض
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Get status badge
+        function getStatusBadge(status) {
+            const statuses = {
+                'draft': { label: 'مسودة', class: 'badge-info' },
+                'pending': { label: 'قيد المراجعة', class: 'badge-warning' },
+                'in_progress': { label: 'قيد المعالجة', class: 'badge-warning' },
+                'approved': { label: 'معتمدة', class: 'badge-success' },
+                'rejected': { label: 'مرفوضة', class: 'badge-danger' }
+            };
+            
+            const s = statuses[status] || { label: status, class: 'badge-info' };
+            return `<span class="badge ${s.class}">${s.label}</span>`;
+        }
+        
+        // Get priority badge
+        function getPriorityBadge(priority) {
+            const priorities = {
+                'normal': { label: 'عادي', class: 'badge-normal' },
+                'urgent': { label: 'عاجل', class: 'badge-urgent' },
+                'very_urgent': { label: 'عاجل جداً', class: 'badge-urgent' }
+            };
+            
+            const p = priorities[priority] || { label: priority, class: 'badge-normal' };
+            return `<span class="badge ${p.class}">${p.label}</span>`;
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('priorityFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            applyFilters();
+        }
+        
+        // View correspondence details
+        function viewCorrespondence(id) {
+            window.location.href = `correspondence-details.html?id=${id}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قالب الكتاب الرسمي</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Traditional Arabic', 'Arial', sans-serif;
+            direction: rtl;
+            text-align: right;
+            line-height: 2;
+            font-size: 16px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .header h2 {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+        
+        .metadata {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .recipient {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .subject {
+            margin-bottom: 30px;
+            text-decoration: underline;
+        }
+        
+        .content {
+            text-align: justify;
+            margin-bottom: 50px;
+            min-height: 300px;
+        }
+        
+        .signature {
+            margin-top: 80px;
+            text-align: left;
+        }
+        
+        .signature-line {
+            border-top: 2px solid #000;
+            width: 200px;
+            margin: 20px 0 10px 0;
+        }
+        
+        .copy-to {
+            margin-top: 50px;
+            font-size: 14px;
+        }
+        
+        .copy-to h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .copy-list {
+            padding-right: 20px;
+        }
+        
+        .copy-list li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- الترويسة -->
+    <div class="header">
+        <h1>الجمهورية العراقية</h1>
+        <h1>وزارة التربية</h1>
+        <h2>[اسم المديرية / القسم / الشعبة]</h2>
+    </div>
+    
+    <!-- العدد والتاريخ -->
+    <div class="metadata">
+        <div>العدد: __________</div>
+        <div>التاريخ: ___/___/______</div>
+    </div>
+    
+    <!-- المرسل إليه -->
+    <div class="recipient">
+        م/ [المرسل إليه]<br>
+        [المنصب]<br>
+        [الجهة]
+    </div>
+    
+    <!-- الموضوع -->
+    <div class="subject">
+        الموضوع: _________________________________
+    </div>
+    
+    <!-- المحتوى -->
+    <div class="content">
+        <p>تحية طيبة،</p>
+        <p>[محتوى الكتاب الرسمي يُكتب هنا...]</p>
+        <p>وتفضلوا بقبول فائق الاحترام والتقدير.</p>
+    </div>
+    
+    <!-- التوقيع -->
+    <div class="signature">
+        <div class="signature-line"></div>
+        <div><strong>[الاسم الكامل]</strong></div>
+        <div>[المنصب]</div>
+        <div style="font-size: 12px; color: #666; margin-top: 10px;">
+            وُقّع إلكترونياً بتاريخ ___/___/______
+        </div>
+    </div>
+    
+    <!-- نسخة إلى -->
+    <div class="copy-to">
+        <h3>نسخة إلى:</h3>
+        <ul class="copy-list">
+            <li>□ الأرشيف</li>
+            <li>□ القسم الإداري</li>
+            <li>□ شعبة المتابعة</li>
+            <li>□ _______________</li>
+        </ul>
+    </div>
+</body>
+</html>

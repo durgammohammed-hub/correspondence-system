@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صندوق الوارد - نظام المراسلات الإدارية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo svg { width: 28px; height: 28px; color: white; }
+        
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
+        
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 28px; font-weight: 900; color: #111827; margin-bottom: 8px; }
+        .page-subtitle { color: #6b7280; font-size: 15px; }
+        
+        .inbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+        
+        .inbox-box {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border-right: 5px solid #3b82f6;
+            transition: all 0.3s;
+        }
+        
+        .inbox-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        
+        .inbox-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .inbox-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #111827;
+        }
+        
+        .inbox-count {
+            width: 36px;
+            height: 36px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+        }
+        
+        .corr-item {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .corr-item:hover {
+            background: #eff6ff;
+            border-right: 3px solid #3b82f6;
+        }
+        
+        .corr-subject {
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .corr-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        
+        .badge-urgent { background: #fecaca; color: #dc2626; }
+        .badge-normal { background: #dbeafe; color: #1e40af; }
+        
+        .empty-box {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+        
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 12px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .empty-icon svg {
+            width: 30px;
+            height: 30px;
+            color: #9ca3af;
+        }
+        
+        @media (max-width: 768px) {
+            .inbox-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div class="logo">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+            </div>
+            <div>
+                <h1>نظام المراسلات الإدارية</h1>
+                <div style="font-size: 12px; color: #6b7280; font-weight: 600;">صندوق الوارد</div>
+            </div>
+        </div>
+        <button class="btn-back" onclick="window.location.href='dashboard.html'">← العودة</button>
+    </div>
+    
+    <div class="container">
+        <div class="page-header">
+            <h2 class="page-title">📥 صندوق الوارد</h2>
+            <p class="page-subtitle">المراسلات الواردة مقسمة حسب الجهة المرسلة</p>
+        </div>
+        
+        <div class="inbox-grid" id="inboxGrid">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #6b7280;">
+                <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">جاري تحميل المراسلات...</div>
+                <div style="font-size: 14px;">يرجى الانتظار</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        // تحميل المراسلات
+        async function loadInbox() {
+            try {
+                const response = await fetch(`${API_URL}/inbox/by-source`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const grouped = data.data || {};
+                    displayInbox(grouped);
+                } else {
+                    showEmpty('فشل تحميل المراسلات');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showEmpty('خطأ في الاتصال');
+            }
+        }
+        
+        // عرض الصناديق
+        function displayInbox(grouped) {
+            const grid = document.getElementById('inboxGrid');
+            
+            if (Object.keys(grouped).length === 0) {
+                showEmpty('لا توجد مراسلات واردة');
+                return;
+            }
+            
+            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
+            let colorIndex = 0;
+            
+            grid.innerHTML = Object.entries(grouped).map(([source, corrs]) => {
+                const color = colors[colorIndex % colors.length];
+                colorIndex++;
+                
+                return `
+                    <div class="inbox-box" style="border-right-color: ${color};">
+                        <div class="inbox-header">
+                            <div class="inbox-title">${source}</div>
+                            <div class="inbox-count" style="background: ${color};">${corrs.length}</div>
+                        </div>
+                        
+                        ${corrs.length > 0 ? corrs.slice(0, 5).map(corr => `
+                            <div class="corr-item" onclick="viewCorrespondence(${corr.id})">
+                                <div class="corr-subject">${corr.subject || 'بدون عنوان'}</div>
+                                <div class="corr-meta">
+                                    <span>📅 ${new Date(corr.created_at).toLocaleDateString('ar-IQ')}</span>
+                                    <span class="badge badge-${corr.priority}">${corr.priority === 'urgent' ? 'عاجل' : 'عادي'}</span>
+                                </div>
+                            </div>
+                        `).join('') : `
+                            <div class="empty-box">
+                                <div class="empty-icon">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    </svg>
+                                </div>
+                                <div>لا توجد مراسلات</div>
+                            </div>
+                        `}
+                        
+                        ${corrs.length > 5 ? `
+                            <div style="text-align: center; margin-top: 12px;">
+                                <button style="background: none; border: none; color: ${color}; font-weight: 700; cursor: pointer; font-family: 'Tajawal', sans-serif;">
+                                    عرض الكل (${corrs.length})
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // عرض حالة فارغة
+        function showEmpty(message) {
+            const grid = document.getElementById('inboxGrid');
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #6b7280;">
+                    <div class="empty-icon" style="margin: 0 auto 16px;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                    </div>
+                    <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">${message}</div>
+                </div>
+            `;
+        }
+        
+        // عرض المراسلة
+        function viewCorrespondence(id) {
+            window.location.href = `correspondence-details.html?id=${id}`;
+        }
+        
+        // التحميل الأولي
+        window.addEventListener('load', loadInbox);
+    </script>
+</body>
+</html>

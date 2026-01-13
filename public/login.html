@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المراسلات الإدارية - تسجيل الدخول</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .logo svg { width: 48px; height: 48px; color: white; }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 900;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 15px;
+            margin-bottom: 32px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Tajawal', sans-serif;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-login:active { transform: translateY(0); }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #a7f3d0;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 2px solid #93c5fd;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: #1e40af;
+            text-align: right;
+        }
+
+        .info-box strong { display: block; margin-bottom: 8px; font-size: 14px; }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 600px) {
+            .login-container { padding: 32px 24px; }
+            h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        </div>
+
+        <h1>نظام المراسلات الإدارية</h1>
+        <p class="subtitle">الجمهورية العراقية</p>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">اسم المستخدم</label>
+                <input type="text" id="username" name="username" required autocomplete="username" placeholder="أدخل اسم المستخدم">
+            </div>
+
+            <div class="form-group">
+                <label for="password">كلمة المرور</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="أدخل كلمة المرور">
+            </div>
+
+            <!-- (اختياري) خانة 2FA تظهر فقط إذا السيرفر طلبها -->
+            <div class="form-group" id="twoFactorWrap" style="display:none;">
+                <label for="twoFactorCode">رمز المصادقة الثنائية</label>
+                <input type="text" id="twoFactorCode" name="twoFactorCode" inputmode="numeric" placeholder="مثال: 123456">
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">تسجيل الدخول</button>
+        </form>
+
+        <div class="info-box">
+            <strong>🔐 بيانات تجريبية:</strong>
+            اسم المستخدم: <strong>admin</strong><br>
+            كلمة المرور: <strong>Admin@123</strong>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const alertBox = document.getElementById('alert');
+        const twoFactorWrap = document.getElementById('twoFactorWrap');
+        const twoFactorCodeEl = document.getElementById('twoFactorCode');
+
+        function showAlert(message, type = 'error') {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+        }
+
+        function hideAlert() {
+            alertBox.style.display = 'none';
+        }
+
+        function setLoading(isLoading) {
+            loginBtn.disabled = isLoading;
+            loginBtn.innerHTML = isLoading ? '<span class="loading"></span>' : 'تسجيل الدخول';
+        }
+
+        // تسجيل الدخول
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
+            setLoading(true);
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const twoFactorCode = twoFactorCodeEl ? twoFactorCodeEl.value.trim() : '';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, twoFactorCode: twoFactorCode || undefined })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                // ✅ إذا السيرفر يريد 2FA
+                if (response.ok && data && data.requiresTwoFactor) {
+                    twoFactorWrap.style.display = 'block';
+                    showAlert('أدخل رمز المصادقة الثنائية ثم اضغط تسجيل الدخول مرة ثانية', 'error');
+                    setLoading(false);
+                    return;
+                }
+
+                if (!response.ok) {
+                    showAlert(data.error || 'خطأ في تسجيل الدخول');
+                    setLoading(false);
+                    return;
+                }
+
+                // ✅ حفظ البيانات
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                showAlert('تم تسجيل الدخول بنجاح! جاري التحويل...', 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 800);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('فشل الاتصال بالخادم. تأكد من تشغيل Backend على المنفذ 5000');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // ✅ إذا عنده توكن سابق، يروح للداشبورد
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

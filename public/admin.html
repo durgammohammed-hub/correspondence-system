@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة النظام - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            direction: rtl; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            color: white; 
+            padding: 20px 40px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header-content { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header h1 { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+        .header p { opacity: 0.9; font-size: 13px; }
+        
+        .btn-back {
+            background: rgba(255,255,255,0.2); 
+            color: white; 
+            border: none;
+            padding: 10px 20px; 
+            border-radius: 10px; 
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif; 
+            font-size: 13px; 
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover { background: rgba(255,255,255,0.3); transform: translateX(-3px); }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 30px; 
+        }
+        
+        .stats-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px; 
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white; 
+            padding: 24px; 
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value { 
+            font-size: 32px; 
+            font-weight: 900; 
+            color: #667eea; 
+            margin-bottom: 4px; 
+        }
+        
+        .stat-label { 
+            font-size: 13px; 
+            color: #6b7280; 
+            font-weight: 600; 
+        }
+        
+        .tabs {
+            background: white; 
+            border-radius: 16px; 
+            padding: 10px; 
+            margin-bottom: 24px;
+            display: flex; 
+            gap: 10px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px; 
+            border-radius: 10px; 
+            border: none; 
+            background: transparent;
+            cursor: pointer; 
+            font-family: 'Tajawal', sans-serif; 
+            font-size: 14px;
+            font-weight: 700; 
+            color: #6b7280; 
+            transition: all 0.3s;
+        }
+        
+        .tab:hover { background: #f3f4f6; }
+        .tab.active { background: #667eea; color: white; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .card {
+            background: white; 
+            border-radius: 16px; 
+            padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .card-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 24px; 
+            padding-bottom: 16px; 
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .card-title { 
+            font-size: 20px; 
+            font-weight: 800; 
+            color: #111827; 
+        }
+        
+        .btn {
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; 
+            font-size: 14px; 
+            font-weight: 700;
+            cursor: pointer; 
+            transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        
+        th, td {
+            padding: 14px 12px;
+            text-align: right;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+        }
+        
+        th {
+            background: #f9fafb;
+            font-weight: 700;
+            color: #374151;
+            position: sticky;
+            top: 0;
+        }
+        
+        tbody tr { transition: all 0.2s; }
+        tbody tr:hover { background: #f9fafb; }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+        }
+        
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal.show { display: flex; }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #111827;
+        }
+        
+        .btn-close {
+            background: #f3f4f6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #6b7280;
+            transition: all 0.3s;
+        }
+        
+        .btn-close:hover { background: #e5e7eb; transform: rotate(90deg); }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .form-control, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .alert.show { display: flex; align-items: center; gap: 10px; }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fecaca;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+            font-size: 15px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+        }
+        
+        /* Permissions Editor */
+        .permissions-row {
+            display: none;
+            background: #f9fafb;
+        }
+        
+        .permissions-row.show {
+            display: table-row;
+        }
+        
+        .permissions-editor {
+            padding: 20px;
+        }
+        
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+        
+        .permission-item:hover {
+            border-color: #667eea;
+        }
+        
+        .permission-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+        
+        .permission-item label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .btn-toggle {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+        
+        .btn-toggle:hover {
+            background: #f3f4f6;
+        }
+        
+        .btn-toggle.active {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>⚙️ لوحة إدارة النظام</h1>
+                <p>إدارة شاملة للمستخدمين، الأقسام، الشعب، المدارس والصلاحيات</p>
+            </div>
+            <a href="dashboard.html" class="btn-back">← العودة</a>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Alert -->
+        <div id="globalAlert" class="alert"></div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">إجمالي المستخدمين</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏢</div>
+                <div class="stat-value" id="totalDepts">0</div>
+                <div class="stat-label">الأقسام</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div class="stat-value" id="totalDivs">0</div>
+                <div class="stat-label">الشعب</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏫</div>
+                <div class="stat-value" id="totalSchools">0</div>
+                <div class="stat-label">المدارس</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎭</div>
+                <div class="stat-value" id="totalRoles">0</div>
+                <div class="stat-label">الأدوار</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('users')">👥 المستخدمين</button>
+            <button class="tab" onclick="switchTab('departments')">🏢 الأقسام</button>
+            <button class="tab" onclick="switchTab('divisions')">📁 الشعب</button>
+            <button class="tab" onclick="switchTab('schools')">🏫 المدارس</button>
+            <button class="tab" onclick="switchTab('roles')">🎭 الأدوار</button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-content" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">👥 إدارة المستخدمين</h2>
+                    <button class="btn btn-primary" onclick="openAddUserModal()">+ إضافة مستخدم</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>الاسم الكامل</th>
+                                <th>اسم المستخدم</th>
+                                <th>البريد</th>
+                                <th>الدور</th>
+                                <th>الجهة</th>
+                                <th style="width: 80px;">الحالة</th>
+                                <th style="width: 180px;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="8" class="loading"><div class="spinner"></div>جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Departments Tab -->
+        <div id="departments-content" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏢 إدارة الأقسام</h2>
+                    <button class="btn btn-primary" onclick="openAddDeptModal()">+ إضافة قسم</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>اسم القسم</th>
+                                <th>الكود</th>
+                                <th>المدير</th>
+                                <th style="width: 100px;">الشعب</th>
+                                <th style="width: 100px;">المستخدمين</th>
+                                <th style="width: 180px;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deptsTableBody">
+                            <tr><td colspan="7" class="loading"><div class="spinner"></div>جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Divisions Tab -->
+        <div id="divisions-content" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📁 إدارة الشعب</h2>
+                    <button class="btn btn-primary" onclick="openAddDivModal()">+ إضافة شعبة</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>اسم الشعبة</th>
+                                <th>الكود</th>
+                                <th>القسم</th>
+                                <th>المدير</th>
+                                <th style="width: 100px;">المستخدمين</th>
+                                <th style="width: 180px;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="divsTableBody">
+                            <tr><td colspan="7" class="loading"><div class="spinner"></div>جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schools Tab -->
+        <div id="schools-content" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏫 إدارة المدارس</h2>
+                    <button class="btn btn-primary" onclick="openAddSchoolModal()">+ إضافة مدرسة</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>اسم المدرسة</th>
+                                <th>الكود</th>
+                                <th>المدير</th>
+                                <th style="width: 100px;">المستخدمين</th>
+                                <th style="width: 180px;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schoolsTableBody">
+                            <tr><td colspan="6" class="loading"><div class="spinner"></div>جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles Tab -->
+        <div id="roles-content" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🎭 الأدوار والصلاحيات</h2>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>اسم الدور</th>
+                                <th style="width: 100px;">المستوى</th>
+                                <th style="width: 150px;">عدد المستخدمين</th>
+                                <th style="width: 180px;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolesTableBody">
+                            <tr><td colspan="5" class="loading"><div class="spinner"></div>جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="userModalTitle">إضافة مستخدم جديد</h3>
+                <button class="btn-close" onclick="closeModal('userModal')">×</button>
+            </div>
+            <form id="userForm" onsubmit="saveUser(event)">
+                <input type="hidden" id="userId" name="id">
+                <div class="form-group">
+                    <label class="form-label">الاسم الكامل *</label>
+                    <input type="text" class="form-control" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">اسم المستخدم *</label>
+                    <input type="text" class="form-control" name="username" required>
+                </div>
+                <div class="form-group" id="passwordGroup">
+                    <label class="form-label">كلمة المرور *</label>
+                    <input type="password" class="form-control" name="password" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    <input type="email" class="form-control" name="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">رقم الهاتف</label>
+                    <input type="tel" class="form-control" name="phone">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">الدور *</label>
+                    <select class="form-select" name="role_id" required id="userRoleSelect">
+                        <option value="">اختر الدور</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">القسم</label>
+                    <select class="form-select" name="department_id" id="userDeptSelect">
+                        <option value="">اختر القسم</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">الشعبة</label>
+                    <select class="form-select" name="division_id" id="userDivSelect">
+                        <option value="">اختر الشعبة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المدرسة</label>
+                    <select class="form-select" name="school_id" id="userSchoolSelect">
+                        <option value="">اختر المدرسة</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeModal('userModal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Department Modal -->
+    <div id="deptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="deptModalTitle">إضافة قسم جديد</h3>
+                <button class="btn-close" onclick="closeModal('deptModal')">×</button>
+            </div>
+            <form id="deptForm" onsubmit="saveDept(event)">
+                <input type="hidden" id="deptId" name="id">
+                <div class="form-group">
+                    <label class="form-label">اسم القسم *</label>
+                    <input type="text" class="form-control" name="dept_name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">كود القسم *</label>
+                    <input type="text" class="form-control" name="dept_code" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">الوصف</label>
+                    <textarea class="form-control" name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المدير</label>
+                    <select class="form-select" name="manager_id" id="deptManagerSelect">
+                        <option value="">اختر المدير</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeModal('deptModal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Division Modal -->
+    <div id="divModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="divModalTitle">إضافة شعبة جديدة</h3>
+                <button class="btn-close" onclick="closeModal('divModal')">×</button>
+            </div>
+            <form id="divForm" onsubmit="saveDiv(event)">
+                <input type="hidden" id="divId" name="id">
+                <div class="form-group">
+                    <label class="form-label">اسم الشعبة *</label>
+                    <input type="text" class="form-control" name="div_name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">كود الشعبة *</label>
+                    <input type="text" class="form-control" name="div_code" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">القسم *</label>
+                    <select class="form-select" name="department_id" required id="divDeptSelect">
+                        <option value="">اختر القسم</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">الوصف</label>
+                    <textarea class="form-control" name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المدير</label>
+                    <select class="form-select" name="manager_id" id="divManagerSelect">
+                        <option value="">اختر المدير</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeModal('divModal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit School Modal -->
+    <div id="schoolModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="schoolModalTitle">إضافة مدرسة جديدة</h3>
+                <button class="btn-close" onclick="closeModal('schoolModal')">×</button>
+            </div>
+            <form id="schoolForm" onsubmit="saveSchool(event)">
+                <input type="hidden" id="schoolId" name="id">
+                <div class="form-group">
+                    <label class="form-label">اسم المدرسة *</label>
+                    <input type="text" class="form-control" name="school_name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">كود المدرسة *</label>
+                    <input type="text" class="form-control" name="school_code" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">العنوان</label>
+                    <textarea class="form-control" name="address" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المدير</label>
+                    <select class="form-select" name="manager_id" id="schoolManagerSelect">
+                        <option value="">اختر المدير</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeModal('schoolModal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+// ==============================================
+// Admin Panel - Complete JavaScript
+// ==============================================
+
+const API_URL = 'http://localhost:5000/api';
+const token = localStorage.getItem('token');
+
+if (!token) {
+    window.location.href = 'login.html';
+}
+
+// Global data
+let allUsers = [];
+let allDepts = [];
+let allDivs = [];
+let allSchools = [];
+let allRoles = [];
+let currentEditId = null;
+
+// ==============================================
+// INITIALIZATION
+// ==============================================
+
+window.addEventListener('load', async () => {
+    await loadAllData();
+});
+
+async function loadAllData() {
+    await Promise.all([
+        loadUsers(),
+        loadDepartments(),
+        loadDivisions(),
+        loadSchools(),
+        loadRoles()
+    ]);
+}
+
+// ==============================================
+// USERS
+// ==============================================
+
+async function loadUsers() {
+    try {
+        const res = await fetch(`${API_URL}/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            allUsers = data.data || [];
+            document.getElementById('totalUsers').textContent = allUsers.length;
+            displayUsers(allUsers);
+            fillManagerSelects();
+        } else {
+            throw new Error('فشل تحميل المستخدمين');
+        }
+    } catch (e) {
+        console.error(e);
+        document.getElementById('usersTableBody').innerHTML = 
+            '<tr><td colspan="8" class="empty-state" style="color: #ef4444;">فشل تحميل البيانات</td></tr>';
+        showAlert('فشل تحميل المستخدمين', 'error');
+    }
+}
+
+function displayUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+    
+    if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">لا يوجد مستخدمين</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = users.map(u => `
+        <tr>
+            <td>${u.id}</td>
+            <td><strong>${u.full_name}</strong></td>
+            <td>${u.username}</td>
+            <td>${u.email || '-'}</td>
+            <td><span class="badge badge-info">${u.role_name_ar || '-'}</span></td>
+            <td>${u.dept_name || u.div_name || u.school_name || '-'}</td>
+            <td><span class="badge ${u.is_active ? 'badge-success' : 'badge-danger'}">
+                ${u.is_active ? 'نشط' : 'معطل'}
+            </span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-warning btn-sm" onclick='editUser(${JSON.stringify(u).replace(/'/g, "&apos;")})'>
+                        تعديل
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.full_name.replace(/'/g, "\\'")}')">
+                        حذف
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openAddUserModal() {
+    document.getElementById('userModalTitle').textContent = 'إضافة مستخدم جديد';
+    document.getElementById('userForm').reset();
+    document.getElementById('userId').value = '';
+    document.getElementById('passwordGroup').querySelector('input').required = true;
+    document.getElementById('passwordGroup').querySelector('label').innerHTML = 'كلمة المرور *';
+    currentEditId = null;
+    openModal('userModal');
+}
+
+function editUser(user) {
+    document.getElementById('userModalTitle').textContent = 'تعديل المستخدم';
+    document.getElementById('userId').value = user.id;
+    document.querySelector('[name="full_name"]').value = user.full_name;
+    document.querySelector('[name="username"]').value = user.username;
+    document.querySelector('[name="email"]').value = user.email || '';
+    document.querySelector('[name="phone"]').value = user.phone || '';
+    document.querySelector('[name="role_id"]').value = user.role_id || '';
+    document.querySelector('[name="department_id"]').value = user.department_id || '';
+    document.querySelector('[name="division_id"]').value = user.division_id || '';
+    document.querySelector('[name="school_id"]').value = user.school_id || '';
+    
+    // كلمة المرور اختيارية عند التعديل
+    document.getElementById('passwordGroup').querySelector('input').required = false;
+    document.getElementById('passwordGroup').querySelector('label').innerHTML = 'كلمة المرور (اتركها فارغة إذا لم تُرد تغييرها)';
+    
+    currentEditId = user.id;
+    openModal('userModal');
+}
+
+async function saveUser(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    formData.forEach((value, key) => {
+        if (key !== 'id' && key !== 'password') {
+            data[key] = value === '' ? null : value;
+        } else if (key === 'password' && value) {
+            data[key] = value;
+        }
+    });
+    
+    const id = document.getElementById('userId').value;
+    const url = id ? `${API_URL}/users/${id}` : `${API_URL}/users`;
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert(id ? 'تم تحديث المستخدم بنجاح' : 'تم إضافة المستخدم بنجاح', 'success');
+            closeModal('userModal');
+            await loadUsers();
+        } else {
+            showAlert(result.error || 'فشلت العملية', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function deleteUser(id, name) {
+    if (!confirm(`هل أنت متأكد من حذف المستخدم "${name}"؟\nهذا الإجراء سيعطل المستخدم فقط.`)) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/users/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert('تم حذف المستخدم بنجاح', 'success');
+            await loadUsers();
+        } else {
+            showAlert(result.error || 'فشل الحذف', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+// ==============================================
+// DEPARTMENTS
+// ==============================================
+
+async function loadDepartments() {
+    try {
+        const res = await fetch(`${API_URL}/departments`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            allDepts = data.data || [];
+            document.getElementById('totalDepts').textContent = allDepts.length;
+            displayDepartments(allDepts);
+            fillDeptSelects();
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل تحميل الأقسام', 'error');
+    }
+}
+
+function displayDepartments(depts) {
+    const tbody = document.getElementById('deptsTableBody');
+    
+    if (!depts.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">لا يوجد أقسام</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = depts.map(d => `
+        <tr>
+            <td>${d.id}</td>
+            <td><strong>${d.dept_name}</strong></td>
+            <td>${d.dept_code}</td>
+            <td>${d.manager_name || '-'}</td>
+            <td>${d.divisions_count || 0}</td>
+            <td>${d.users_count || 0}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-warning btn-sm" onclick='editDept(${JSON.stringify(d).replace(/'/g, "&apos;")})'>
+                        تعديل
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteDept(${d.id}, '${d.dept_name.replace(/'/g, "\\'")}')">
+                        حذف
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openAddDeptModal() {
+    document.getElementById('deptModalTitle').textContent = 'إضافة قسم جديد';
+    document.getElementById('deptForm').reset();
+    document.getElementById('deptId').value = '';
+    openModal('deptModal');
+}
+
+function editDept(dept) {
+    document.getElementById('deptModalTitle').textContent = 'تعديل القسم';
+    document.getElementById('deptId').value = dept.id;
+    document.querySelector('#deptForm [name="dept_name"]').value = dept.dept_name;
+    document.querySelector('#deptForm [name="dept_code"]').value = dept.dept_code;
+    document.querySelector('#deptForm [name="description"]').value = dept.description || '';
+    document.querySelector('#deptForm [name="manager_id"]').value = dept.manager_id || '';
+    openModal('deptModal');
+}
+
+async function saveDept(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    formData.forEach((value, key) => {
+        if (key !== 'id') {
+            data[key] = value === '' ? null : value;
+        }
+    });
+    
+    const id = document.getElementById('deptId').value;
+    const url = id ? `${API_URL}/departments/${id}` : `${API_URL}/departments`;
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert(id ? 'تم تحديث القسم بنجاح' : 'تم إضافة القسم بنجاح', 'success');
+            closeModal('deptModal');
+            await loadDepartments();
+        } else {
+            showAlert(result.error || 'فشلت العملية', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function deleteDept(id, name) {
+    if (!confirm(`هل أنت متأكد من حذف القسم "${name}"؟`)) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/departments/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert('تم حذف القسم بنجاح', 'success');
+            await loadDepartments();
+        } else {
+            showAlert(result.error || 'فشل الحذف', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+// ==============================================
+// DIVISIONS
+// ==============================================
+
+async function loadDivisions() {
+    try {
+        const res = await fetch(`${API_URL}/divisions`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            allDivs = data.data || [];
+            document.getElementById('totalDivs').textContent = allDivs.length;
+            displayDivisions(allDivs);
+            fillDivSelects();
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل تحميل الشعب', 'error');
+    }
+}
+
+function displayDivisions(divs) {
+    const tbody = document.getElementById('divsTableBody');
+    
+    if (!divs.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">لا يوجد شعب</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = divs.map(d => `
+        <tr>
+            <td>${d.id}</td>
+            <td><strong>${d.div_name}</strong></td>
+            <td>${d.div_code}</td>
+            <td>${d.dept_name || '-'}</td>
+            <td>${d.manager_name || '-'}</td>
+            <td>${d.users_count || 0}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-warning btn-sm" onclick='editDiv(${JSON.stringify(d).replace(/'/g, "&apos;")})'>
+                        تعديل
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteDiv(${d.id}, '${d.div_name.replace(/'/g, "\\'")}')">
+                        حذف
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openAddDivModal() {
+    document.getElementById('divModalTitle').textContent = 'إضافة شعبة جديدة';
+    document.getElementById('divForm').reset();
+    document.getElementById('divId').value = '';
+    openModal('divModal');
+}
+
+function editDiv(div) {
+    document.getElementById('divModalTitle').textContent = 'تعديل الشعبة';
+    document.getElementById('divId').value = div.id;
+    document.querySelector('#divForm [name="div_name"]').value = div.div_name;
+    document.querySelector('#divForm [name="div_code"]').value = div.div_code;
+    document.querySelector('#divForm [name="department_id"]').value = div.department_id || '';
+    document.querySelector('#divForm [name="description"]').value = div.description || '';
+    document.querySelector('#divForm [name="manager_id"]').value = div.manager_id || '';
+    openModal('divModal');
+}
+
+async function saveDiv(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    formData.forEach((value, key) => {
+        if (key !== 'id') {
+            data[key] = value === '' ? null : value;
+        }
+    });
+    
+    const id = document.getElementById('divId').value;
+    const url = id ? `${API_URL}/divisions/${id}` : `${API_URL}/divisions`;
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert(id ? 'تم تحديث الشعبة بنجاح' : 'تم إضافة الشعبة بنجاح', 'success');
+            closeModal('divModal');
+            await loadDivisions();
+        } else {
+            showAlert(result.error || 'فشلت العملية', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function deleteDiv(id, name) {
+    if (!confirm(`هل أنت متأكد من حذف الشعبة "${name}"؟`)) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/divisions/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert('تم حذف الشعبة بنجاح', 'success');
+            await loadDivisions();
+        } else {
+            showAlert(result.error || 'فشل الحذف', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+// ==============================================
+// SCHOOLS
+// ==============================================
+
+async function loadSchools() {
+    try {
+        const res = await fetch(`${API_URL}/schools`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            allSchools = data.data || [];
+            document.getElementById('totalSchools').textContent = allSchools.length;
+            displaySchools(allSchools);
+            fillSchoolSelects();
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل تحميل المدارس', 'error');
+    }
+}
+
+function displaySchools(schools) {
+    const tbody = document.getElementById('schoolsTableBody');
+    
+    if (!schools.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">لا يوجد مدارس</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = schools.map(s => `
+        <tr>
+            <td>${s.id}</td>
+            <td><strong>${s.school_name}</strong></td>
+            <td>${s.school_code}</td>
+            <td>${s.manager_name || '-'}</td>
+            <td>${s.users_count || 0}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-warning btn-sm" onclick='editSchool(${JSON.stringify(s).replace(/'/g, "&apos;")})'>
+                        تعديل
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteSchool(${s.id}, '${s.school_name.replace(/'/g, "\\'")}')">
+                        حذف
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openAddSchoolModal() {
+    document.getElementById('schoolModalTitle').textContent = 'إضافة مدرسة جديدة';
+    document.getElementById('schoolForm').reset();
+    document.getElementById('schoolId').value = '';
+    openModal('schoolModal');
+}
+
+function editSchool(school) {
+    document.getElementById('schoolModalTitle').textContent = 'تعديل المدرسة';
+    document.getElementById('schoolId').value = school.id;
+    document.querySelector('#schoolForm [name="school_name"]').value = school.school_name;
+    document.querySelector('#schoolForm [name="school_code"]').value = school.school_code;
+    document.querySelector('#schoolForm [name="address"]').value = school.address || '';
+    document.querySelector('#schoolForm [name="manager_id"]').value = school.manager_id || '';
+    openModal('schoolModal');
+}
+
+async function saveSchool(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    formData.forEach((value, key) => {
+        if (key !== 'id') {
+            data[key] = value === '' ? null : value;
+        }
+    });
+    
+    const id = document.getElementById('schoolId').value;
+    const url = id ? `${API_URL}/schools/${id}` : `${API_URL}/schools`;
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert(id ? 'تم تحديث المدرسة بنجاح' : 'تم إضافة المدرسة بنجاح', 'success');
+            closeModal('schoolModal');
+            await loadSchools();
+        } else {
+            showAlert(result.error || 'فشلت العملية', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+async function deleteSchool(id, name) {
+    if (!confirm(`هل أنت متأكد من حذف المدرسة "${name}"؟`)) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/schools/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert('تم حذف المدرسة بنجاح', 'success');
+            await loadSchools();
+        } else {
+            showAlert(result.error || 'فشل الحذف', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+// ==============================================
+// ROLES
+// ==============================================
+
+async function loadRoles() {
+    try {
+        const res = await fetch(`${API_URL}/roles`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            allRoles = data.data || [];
+            document.getElementById('totalRoles').textContent = allRoles.length;
+            displayRoles(allRoles);
+            fillRoleSelects();
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل تحميل الأدوار', 'error');
+    }
+}
+
+function displayRoles(roles) {
+    const tbody = document.getElementById('rolesTableBody');
+    
+    if (!roles.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">لا يوجد أدوار</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = roles.map((r, index) => {
+        // قائمة جميع الصلاحيات المتاحة
+        const allPermissions = [
+            { key: 'view_all', label: 'عرض الكل' },
+            { key: 'view_department', label: 'عرض القسم' },
+            { key: 'view_division', label: 'عرض الشعبة' },
+            { key: 'view_own', label: 'عرض الخاص' },
+            { key: 'create', label: 'إنشاء' },
+            { key: 'create_books', label: 'إنشاء مراسلات' },
+            { key: 'edit_own', label: 'تعديل الخاص' },
+            { key: 'edit_all', label: 'تعديل الكل' },
+            { key: 'delete', label: 'حذف' },
+            { key: 'approve', label: 'اعتماد' },
+            { key: 'approve_division', label: 'اعتماد الشعبة' },
+            { key: 'approve_books', label: 'اعتماد المراسلات' },
+            { key: 'reports', label: 'التقارير' },
+            { key: 'manage_users', label: 'إدارة المستخدمين' },
+            { key: 'manage_departments', label: 'إدارة الأقسام' },
+            { key: 'manage_system', label: 'إدارة النظام' },
+            { key: 'system_admin', label: 'مدير النظام' }
+        ];
+        
+        // الصلاحيات الحالية
+        let currentPerms = {};
+        try {
+            currentPerms = typeof r.permissions === 'string' ? JSON.parse(r.permissions) : (r.permissions || {});
+        } catch (e) {
+            currentPerms = {};
+        }
+        
+        // HTML للصلاحيات
+        const permsHTML = allPermissions.map(p => `
+            <div class="permission-item">
+                <input 
+                    type="checkbox" 
+                    id="perm_${r.id}_${p.key}"
+                    ${currentPerms[p.key] ? 'checked' : ''}
+                    onchange="updatePermission(${r.id}, '${p.key}', this.checked)"
+                >
+                <label for="perm_${r.id}_${p.key}">${p.label}</label>
+            </div>
+        `).join('');
+        
+        return `
+            <tr>
+                <td>${r.id}</td>
+                <td><strong>${r.role_name_ar}</strong></td>
+                <td><span class="badge ${r.level <= 2 ? 'badge-danger' : 'badge-info'}">${r.level}</span></td>
+                <td>${r.users_count || 0}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-toggle" onclick="togglePermissions(${r.id})" id="toggle_${r.id}">
+                            ◀
+                        </button>
+                        <span style="font-size: 12px; color: #6b7280;">الصلاحيات</span>
+                    </div>
+                </td>
+            </tr>
+            <tr class="permissions-row" id="perms_${r.id}">
+                <td colspan="5">
+                    <div class="permissions-editor">
+                        <h4 style="margin-bottom: 16px; color: #374151; font-size: 15px;">
+                            صلاحيات دور: ${r.role_name_ar}
+                        </h4>
+                        <div class="permissions-grid">
+                            ${permsHTML}
+                        </div>
+                        <div style="text-align: center; padding-top: 12px; border-top: 2px solid #e5e7eb;">
+                            <button class="btn btn-primary btn-sm" onclick="saveRolePermissions(${r.id})">
+                                حفظ التعديلات
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Toggle permissions editor
+function togglePermissions(roleId) {
+    const row = document.getElementById(`perms_${roleId}`);
+    const btn = document.getElementById(`toggle_${roleId}`);
+    
+    row.classList.toggle('show');
+    btn.classList.toggle('active');
+}
+
+// Update permission in memory
+const rolePermissionsCache = {};
+
+function updatePermission(roleId, permKey, value) {
+    if (!rolePermissionsCache[roleId]) {
+        const role = allRoles.find(r => r.id === roleId);
+        try {
+            rolePermissionsCache[roleId] = typeof role.permissions === 'string' 
+                ? JSON.parse(role.permissions) 
+                : (role.permissions || {});
+        } catch (e) {
+            rolePermissionsCache[roleId] = {};
+        }
+    }
+    
+    if (value) {
+        rolePermissionsCache[roleId][permKey] = true;
+    } else {
+        delete rolePermissionsCache[roleId][permKey];
+    }
+}
+
+// Save role permissions
+async function saveRolePermissions(roleId) {
+    if (!rolePermissionsCache[roleId]) {
+        showAlert('لم يتم إجراء أي تعديلات', 'error');
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/roles/${roleId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                permissions: rolePermissionsCache[roleId]
+            })
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+            showAlert('تم حفظ الصلاحيات بنجاح', 'success');
+            delete rolePermissionsCache[roleId];
+            await loadRoles();
+        } else {
+            showAlert(result.error || 'فشل الحفظ', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showAlert('فشل الاتصال بالخادم', 'error');
+    }
+}
+
+// ==============================================
+// FILL SELECTS
+// ==============================================
+
+function fillManagerSelects() {
+    const managersHTML = '<option value="">اختر المدير</option>' +
+        allUsers.map(u => `<option value="${u.id}">${u.full_name}</option>`).join('');
+    
+    document.getElementById('deptManagerSelect').innerHTML = managersHTML;
+    document.getElementById('divManagerSelect').innerHTML = managersHTML;
+    document.getElementById('schoolManagerSelect').innerHTML = managersHTML;
+}
+
+function fillDeptSelects() {
+    const html = '<option value="">اختر القسم</option>' +
+        allDepts.map(d => `<option value="${d.id}">${d.dept_name}</option>`).join('');
+    
+    document.getElementById('userDeptSelect').innerHTML = html;
+    document.getElementById('divDeptSelect').innerHTML = html;
+}
+
+function fillDivSelects() {
+    const html = '<option value="">اختر الشعبة</option>' +
+        allDivs.map(d => `<option value="${d.id}">${d.div_name}</option>`).join('');
+    
+    document.getElementById('userDivSelect').innerHTML = html;
+}
+
+function fillSchoolSelects() {
+    const html = '<option value="">اختر المدرسة</option>' +
+        allSchools.map(s => `<option value="${s.id}">${s.school_name}</option>`).join('');
+    
+    document.getElementById('userSchoolSelect').innerHTML = html;
+}
+
+function fillRoleSelects() {
+    const html = '<option value="">اختر الدور</option>' +
+        allRoles.map(r => `<option value="${r.id}">${r.role_name_ar}</option>`).join('');
+    
+    document.getElementById('userRoleSelect').innerHTML = html;
+}
+
+// ==============================================
+// MODAL FUNCTIONS
+// ==============================================
+
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('show');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('show');
+    const form = document.querySelector(`#${modalId} form`);
+    if (form) form.reset();
+}
+
+// Close modal on outside click
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('show');
+    }
+});
+
+// ==============================================
+// TAB SWITCHING
+// ==============================================
+
+function switchTab(tab) {
+    // Update tabs
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Update content
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`${tab}-content`).classList.add('active');
+}
+
+// ==============================================
+// ALERT FUNCTIONS
+// ==============================================
+
+function showAlert(message, type = 'success') {
+    const alert = document.getElementById('globalAlert');
+    const icon = type === 'success' ? '✓' : '✕';
+    alert.innerHTML = `<span style="font-size: 18px;">${icon}</span> ${message}`;
+    alert.className = `alert alert-${type} show`;
+    
+    setTimeout(() => {
+        alert.classList.remove('show');
+    }, 5000);
+}
+
+</script>
+</body>
+</html>

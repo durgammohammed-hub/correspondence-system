@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Uploads (keep structure, ignore files)
+uploads/*
+!uploads/.gitkeep
+uploads/correspondences/*
+!uploads/correspondences/.gitkeep
+uploads/templates/*
+!uploads/templates/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp

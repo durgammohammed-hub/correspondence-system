@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151; text-decoration: none;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
+        
+        .page-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .page-title { font-size: 28px; font-weight: 900; color: #111827; }
+        
+        .filters-card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;
+        }
+        
+        .filters-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block; font-weight: 700; color: #374151;
+            margin-bottom: 8px; font-size: 13px;
+        }
+        
+        .form-control, .form-select {
+            width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px; margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: white; padding: 24px; border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border-right: 4px solid #3b82f6;
+        }
+        
+        .stat-value {
+            font-size: 36px; font-weight: 900; color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 14px; color: #6b7280; font-weight: 600;
+        }
+        
+        .chart-card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;
+        }
+        
+        .chart-title {
+            font-size: 18px; font-weight: 800; color: #111827;
+            margin-bottom: 20px;
+        }
+        
+        .chart-placeholder {
+            height: 300px; background: #f9fafb;
+            border-radius: 12px; display: flex;
+            align-items: center; justify-content: center;
+            color: #9ca3af; font-size: 14px;
+        }
+        
+        table {
+            width: 100%; border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px; text-align: right;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th {
+            background: #f9fafb; font-weight: 700;
+            color: #374151;
+        }
+        
+        .badge {
+            padding: 4px 12px; border-radius: 12px;
+            font-size: 11px; font-weight: 700;
+        }
+        
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 32px;">📊</div>
+            <h1>التقارير والإحصائيات</h1>
+        </div>
+        <a href="dashboard.html" class="btn-back">← العودة</a>
+    </div>
+    
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">التقارير الإحصائية</div>
+            <button class="btn btn-success" onclick="exportReport()">
+                📥 تصدير Excel
+            </button>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters-card">
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label>من تاريخ</label>
+                    <input type="date" class="form-control" id="dateFrom">
+                </div>
+                <div class="form-group">
+                    <label>إلى تاريخ</label>
+                    <input type="date" class="form-control" id="dateTo">
+                </div>
+                <div class="form-group">
+                    <label>القسم</label>
+                    <select class="form-select" id="department">
+                        <option value="">الكل</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>نوع التقرير</label>
+                    <select class="form-select" id="reportType">
+                        <option value="overview">نظرة عامة</option>
+                        <option value="by_department">حسب القسم</option>
+                        <option value="by_user">حسب المستخدم</option>
+                        <option value="by_status">حسب الحالة</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="generateReport()">
+                🔍 إنشاء التقرير
+            </button>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCorr">0</div>
+                <div class="stat-label">إجمالي المراسلات</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completedCorr">0</div>
+                <div class="stat-label">المكتملة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCorr">0</div>
+                <div class="stat-label">قيد المعالجة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgTime">0</div>
+                <div class="stat-label">متوسط وقت الإنجاز (أيام)</div>
+            </div>
+        </div>
+        
+        <!-- Chart -->
+        <div class="chart-card">
+            <div class="chart-title">المراسلات خلال الفترة</div>
+            <div class="chart-placeholder">
+                📈 الرسم البياني سيظهر هنا
+            </div>
+        </div>
+        
+        <!-- Table -->
+        <div class="chart-card">
+            <div class="chart-title">تفاصيل المراسلات</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الرقم</th>
+                        <th>الموضوع</th>
+                        <th>المرسل</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTable">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">
+                            اختر الفلاتر وانقر على "إنشاء التقرير"
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        window.addEventListener('load', () => {
+            loadInitialStats();
+            loadDepartments();
+        });
+        
+        async function loadInitialStats() {
+            try {
+                const response = await fetch(`${API_URL}/correspondences`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const corrs = data.data || [];
+                    
+                    document.getElementById('totalCorr').textContent = corrs.length;
+                    document.getElementById('completedCorr').textContent = 
+                        corrs.filter(c => c.status === 'approved').length;
+                    document.getElementById('pendingCorr').textContent = 
+                        corrs.filter(c => c.status === 'pending' || c.status === 'in_progress').length;
+                    
+                    // Calculate average completion time
+                    const completed = corrs.filter(c => c.status === 'approved' && c.updated_at);
+                    if (completed.length > 0) {
+                        const avgMs = completed.reduce((sum, c) => {
+                            const start = new Date(c.created_at);
+                            const end = new Date(c.updated_at);
+                            return sum + (end - start);
+                        }, 0) / completed.length;
+                        const avgDays = Math.round(avgMs / (1000 * 60 * 60 * 24));
+                        document.getElementById('avgTime').textContent = avgDays;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        async function loadDepartments() {
+            try {
+                const response = await fetch(`${API_URL}/departments`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('department');
+                    
+                    data.data.forEach(dept => {
+                        const option = document.createElement('option');
+                        option.value = dept.id;
+                        option.textContent = dept.dept_name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        async function generateReport() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const department = document.getElementById('department').value;
+            const reportType = document.getElementById('reportType').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/correspondences`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    let corrs = data.data || [];
+                    
+                    // Apply filters
+                    if (dateFrom) {
+                        corrs = corrs.filter(c => new Date(c.created_at) >= new Date(dateFrom));
+                    }
+                    if (dateTo) {
+                        corrs = corrs.filter(c => new Date(c.created_at) <= new Date(dateTo));
+                    }
+                    if (department) {
+                        corrs = corrs.filter(c => c.department_id == department);
+                    }
+                    
+                    displayReport(corrs);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        function displayReport(corrs) {
+            const tbody = document.getElementById('reportTable');
+            
+            if (corrs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #9ca3af;">
+                            لا توجد نتائج
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = corrs.map(c => `
+                <tr>
+                    <td>${c.corr_number}</td>
+                    <td>${c.subject}</td>
+                    <td>${c.sender_name || 'غير محدد'}</td>
+                    <td>${getStatusBadge(c.status)}</td>
+                    <td>${new Date(c.created_at).toLocaleDateString('ar-IQ')}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function getStatusBadge(status) {
+            const statuses = {
+                'approved': { label: 'معتمدة', class: 'badge-success' },
+                'pending': { label: 'قيد المراجعة', class: 'badge-warning' },
+                'rejected': { label: 'مرفوضة', class: 'badge-danger' }
+            };
+            const s = statuses[status] || { label: status, class: 'badge-warning' };
+            return `<span class="badge ${s.class}">${s.label}</span>`;
+        }
+        
+        function exportReport() {
+            alert('قريباً: سيتم إضافة ميزة تصدير التقرير إلى Excel');
+        }
+    </script>
+</body>
+</html>

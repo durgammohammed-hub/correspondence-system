@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء مراسلة من قالب - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151; text-decoration: none;
+        }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 32px; }
+        
+        .steps {
+            display: flex; justify-content: center; gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .step {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 24px; background: white;
+            border-radius: 12px; border: 2px solid #e5e7eb;
+        }
+        
+        .step.active {
+            border-color: #3b82f6; background: #eff6ff;
+        }
+        
+        .step.completed {
+            border-color: #10b981; background: #f0fdf4;
+        }
+        
+        .step-number {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: #e5e7eb; display: flex; align-items: center;
+            justify-content: center; font-weight: 900;
+            color: #6b7280;
+        }
+        
+        .step.active .step-number {
+            background: #3b82f6; color: white;
+        }
+        
+        .step.completed .step-number {
+            background: #10b981; color: white;
+        }
+        
+        .step-label {
+            font-weight: 700; color: #6b7280;
+        }
+        
+        .step.active .step-label {
+            color: #3b82f6;
+        }
+        
+        .step.completed .step-label {
+            color: #10b981;
+        }
+        
+        .card {
+            background: white; border-radius: 16px; padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .card-title {
+            font-size: 22px; font-weight: 900; color: #111827;
+            margin-bottom: 24px;
+        }
+        
+        .templates-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .template-card {
+            padding: 24px; border: 2px solid #e5e7eb;
+            border-radius: 12px; cursor: pointer;
+            transition: all 0.3s; text-align: center;
+        }
+        
+        .template-card:hover {
+            border-color: #3b82f6; background: #eff6ff;
+            transform: translateY(-4px);
+        }
+        
+        .template-card.selected {
+            border-color: #3b82f6; background: #eff6ff;
+        }
+        
+        .template-icon {
+            font-size: 48px; margin-bottom: 12px;
+        }
+        
+        .template-name {
+            font-size: 16px; font-weight: 700;
+            color: #111827; margin-bottom: 4px;
+        }
+        
+        .template-desc {
+            font-size: 13px; color: #6b7280;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block; font-weight: 700; color: #374151;
+            margin-bottom: 8px; font-size: 14px;
+        }
+        
+        .required { color: #ef4444; }
+        
+        .form-control, .form-select {
+            width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-family: 'Tajawal', sans-serif;
+            font-size: 14px; transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea.form-control {
+            resize: vertical; min-height: 100px;
+        }
+        
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        
+        .actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+            margin-top: 32px; padding-top: 32px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .hidden { display: none; }
+        
+        .field-hint {
+            font-size: 12px; color: #9ca3af;
+            margin-top: 4px;
+        }
+        
+        .preview-box {
+            background: #f9fafb; padding: 20px;
+            border-radius: 12px; border: 2px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+        
+        .preview-title {
+            font-size: 16px; font-weight: 700;
+            color: #374151; margin-bottom: 12px;
+        }
+        
+        .preview-content {
+            line-height: 1.8; white-space: pre-wrap;
+            color: #111827;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 32px;">📝</div>
+            <h1>إنشاء مراسلة من قالب</h1>
+        </div>
+        <a href="dashboard.html" class="btn-back">← العودة</a>
+    </div>
+    
+    <div class="container">
+        <!-- Steps -->
+        <div class="steps">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-label">اختيار القالب</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-label">تعبئة البيانات</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-label">المراجعة والإرسال</div>
+            </div>
+        </div>
+        
+        <!-- Step 1: Template Selection -->
+        <div class="card" id="templateSelection">
+            <div class="card-title">اختر القالب المناسب</div>
+            
+            <div class="templates-grid" id="templatesGrid">
+                <!-- Will be populated by JS -->
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" onclick="nextStep()" disabled id="nextBtn1">
+                    التالي ←
+                </button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Fill Data -->
+        <div class="card hidden" id="dataEntry">
+            <div class="card-title">تعبئة بيانات القالب</div>
+            
+            <form id="templateForm">
+                <div id="dynamicFields">
+                    <!-- Will be populated based on selected template -->
+                </div>
+                
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep()">
+                        → السابق
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="nextStep()">
+                        التالي ←
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Step 3: Review and Submit -->
+        <div class="card hidden" id="review">
+            <div class="card-title">مراجعة الكتاب</div>
+            
+            <div class="preview-box">
+                <div class="preview-title">معاينة الكتاب:</div>
+                <div class="preview-content" id="previewContent">
+                    <!-- Will show filled template -->
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">المرسل إليه النهائي <span class="required">*</span></label>
+                <select class="form-select" id="finalRecipient" required>
+                    <option value="">اختر المرسل إليه</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">نسخة إلى (اختياري)</label>
+                <div id="ccCheckboxes"></div>
+            </div>
+            
+            <div class="actions">
+                <button type="button" class="btn btn-secondary" onclick="prevStep()">
+                    → السابق
+                </button>
+                <button type="button" class="btn btn-success" onclick="submitCorrespondence()">
+                    ✉️ إرسال للاعتماد
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        let currentStep = 1;
+        let selectedTemplate = null;
+        let formData = {};
+        
+        // Template definitions with fields
+        const templates = [
+            {
+                id: 1,
+                name: 'كتاب رسمي عام',
+                icon: '📋',
+                description: 'قالب كتاب رسمي عام',
+                fields: [
+                    { name: 'subject', label: 'الموضوع', type: 'text', required: true },
+                    { name: 'recipient_name', label: 'اسم المرسل إليه', type: 'text', required: true },
+                    { name: 'recipient_position', label: 'منصب المرسل إليه', type: 'text', required: true },
+                    { name: 'content', label: 'المحتوى', type: 'textarea', required: true },
+                    { name: 'attachments_note', label: 'ملاحظة المرفقات', type: 'text', required: false }
+                ],
+                template: `الجمهورية العراقية
+وزارة التربية
+{{department}}
+
+العدد: {{number}}
+التاريخ: {{date}}
+
+إلى: {{recipient_name}}
+      {{recipient_position}}
+
+الموضوع: {{subject}}
+
+تحية طيبة،
+
+{{content}}
+
+مع التقدير،
+
+{{sender_name}}
+{{sender_position}}
+التوقيع: ________________`
+            },
+            {
+                id: 2,
+                name: 'طلب إجازة',
+                icon: '🏖️',
+                description: 'قالب طلب إجازة اعتيادية',
+                fields: [
+                    { name: 'leave_type', label: 'نوع الإجازة', type: 'select', 
+                      options: ['اعتيادية', 'مرضية', 'طارئة'], required: true },
+                    { name: 'leave_duration', label: 'المدة (بالأيام)', type: 'number', required: true },
+                    { name: 'leave_start', label: 'تاريخ البداية', type: 'date', required: true },
+                    { name: 'leave_end', label: 'تاريخ النهاية', type: 'date', required: true },
+                    { name: 'leave_reason', label: 'سبب الإجازة', type: 'textarea', required: true }
+                ],
+                template: `الجمهورية العراقية
+وزارة التربية
+{{department}}
+
+العدد: {{number}}
+التاريخ: {{date}}
+
+إلى: مدير الموارد البشرية المحترم
+
+الموضوع: طلب إجازة {{leave_type}}
+
+تحية طيبة،
+
+أتقدم بطلب الحصول على إجازة {{leave_type}} لمدة {{leave_duration}} يوم، من تاريخ {{leave_start}} إلى تاريخ {{leave_end}}.
+
+سبب الإجازة:
+{{leave_reason}}
+
+آمل الموافقة على طلبي هذا.
+
+مع التقدير،
+
+{{sender_name}}
+{{sender_position}}`
+            },
+            {
+                id: 3,
+                name: 'محضر اجتماع',
+                icon: '👥',
+                description: 'قالب محضر اجتماع رسمي',
+                fields: [
+                    { name: 'meeting_title', label: 'عنوان الاجتماع', type: 'text', required: true },
+                    { name: 'meeting_date', label: 'تاريخ الاجتماع', type: 'date', required: true },
+                    { name: 'meeting_time', label: 'وقت الاجتماع', type: 'time', required: true },
+                    { name: 'meeting_location', label: 'مكان الاجتماع', type: 'text', required: true },
+                    { name: 'attendees', label: 'الحاضرون', type: 'textarea', required: true },
+                    { name: 'agenda', label: 'جدول الأعمال', type: 'textarea', required: true },
+                    { name: 'discussions', label: 'المناقشات', type: 'textarea', required: true },
+                    { name: 'decisions', label: 'القرارات', type: 'textarea', required: true }
+                ],
+                template: `الجمهورية العراقية
+وزارة التربية
+{{department}}
+
+محضر اجتماع
+
+العنوان: {{meeting_title}}
+التاريخ: {{meeting_date}}
+الوقت: {{meeting_time}}
+المكان: {{meeting_location}}
+
+الحاضرون:
+{{attendees}}
+
+جدول الأعمال:
+{{agenda}}
+
+المناقشات:
+{{discussions}}
+
+القرارات المتخذة:
+{{decisions}}
+
+التوقيعات:
+رئيس الاجتماع: ________________
+المقرر: ________________`
+            }
+        ];
+        
+        window.addEventListener('load', () => {
+            displayTemplates();
+            loadRecipients();
+            loadCCOptions();
+        });
+        
+        function displayTemplates() {
+            const grid = document.getElementById('templatesGrid');
+            
+            grid.innerHTML = templates.map(t => `
+                <div class="template-card" onclick="selectTemplate(${t.id})">
+                    <div class="template-icon">${t.icon}</div>
+                    <div class="template-name">${t.name}</div>
+                    <div class="template-desc">${t.description}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectTemplate(id) {
+            selectedTemplate = templates.find(t => t.id === id);
+            
+            // Update UI
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            document.getElementById('nextBtn1').disabled = false;
+        }
+        
+        function nextStep() {
+            if (currentStep === 1) {
+                if (!selectedTemplate) return;
+                generateDynamicFields();
+                currentStep = 2;
+            } else if (currentStep === 2) {
+                if (!validateForm()) return;
+                collectFormData();
+                generatePreview();
+                currentStep = 3;
+            }
+            
+            updateStepsUI();
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepsUI();
+            }
+        }
+        
+        function updateStepsUI() {
+            // Update step indicators
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+                
+                if (i === currentStep) {
+                    step.classList.add('active');
+                } else if (i < currentStep) {
+                    step.classList.add('completed');
+                }
+            }
+            
+            // Show/hide sections
+            document.getElementById('templateSelection').classList.toggle('hidden', currentStep !== 1);
+            document.getElementById('dataEntry').classList.toggle('hidden', currentStep !== 2);
+            document.getElementById('review').classList.toggle('hidden', currentStep !== 3);
+        }
+        
+        function generateDynamicFields() {
+            const container = document.getElementById('dynamicFields');
+            
+            container.innerHTML = selectedTemplate.fields.map(field => {
+                if (field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'time') {
+                    return `
+                        <div class="form-group">
+                            <label class="form-label">
+                                ${field.label}
+                                ${field.required ? '<span class="required">*</span>' : ''}
+                            </label>
+                            <input type="${field.type}" class="form-control" 
+                                   name="${field.name}" ${field.required ? 'required' : ''}>
+                        </div>
+                    `;
+                } else if (field.type === 'textarea') {
+                    return `
+                        <div class="form-group">
+                            <label class="form-label">
+                                ${field.label}
+                                ${field.required ? '<span class="required">*</span>' : ''}
+                            </label>
+                            <textarea class="form-control" name="${field.name}" 
+                                      ${field.required ? 'required' : ''}></textarea>
+                        </div>
+                    `;
+                } else if (field.type === 'select') {
+                    return `
+                        <div class="form-group">
+                            <label class="form-label">
+                                ${field.label}
+                                ${field.required ? '<span class="required">*</span>' : ''}
+                            </label>
+                            <select class="form-select" name="${field.name}" 
+                                    ${field.required ? 'required' : ''}>
+                                <option value="">اختر...</option>
+                                ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+        
+        function validateForm() {
+            const form = document.getElementById('templateForm');
+            return form.checkValidity();
+        }
+        
+        function collectFormData() {
+            const form = document.getElementById('templateForm');
+            const inputs = form.querySelectorAll('input, textarea, select');
+            
+            formData = {
+                template_id: selectedTemplate.id,
+                template_name: selectedTemplate.name
+            };
+            
+            inputs.forEach(input => {
+                formData[input.name] = input.value;
+            });
+        }
+        
+        function generatePreview() {
+            let content = selectedTemplate.template;
+            
+            // Replace placeholders
+            const today = new Date().toLocaleDateString('ar-IQ');
+            const year = new Date().getFullYear();
+            
+            content = content.replace('{{number}}', `___/${year}`);
+            content = content.replace('{{date}}', today);
+            content = content.replace('{{department}}', user.dept_name || 'الإدارة');
+            content = content.replace('{{sender_name}}', user.full_name);
+            content = content.replace('{{sender_position}}', user.role_name_ar || 'موظف');
+            
+            // Replace user-filled fields
+            Object.keys(formData).forEach(key => {
+                const placeholder = `{{${key}}}`;
+                content = content.replace(new RegExp(placeholder, 'g'), formData[key] || '');
+            });
+            
+            document.getElementById('previewContent').textContent = content;
+        }
+        
+        async function loadRecipients() {
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const managers = data.data.filter(u => u.level && u.level <= 3);
+                    const select = document.getElementById('finalRecipient');
+                    
+                    managers.forEach(u => {
+                        const option = document.createElement('option');
+                        option.value = u.id;
+                        option.textContent = `${u.full_name} - ${u.role_name_ar || 'مدير'}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        function loadCCOptions() {
+            const container = document.getElementById('ccCheckboxes');
+            const options = ['الأرشيف', 'الإدارة', 'شعبة المتابعة', 'الموارد البشرية'];
+            
+            container.innerHTML = options.map(opt => `
+                <label style="display: block; margin-bottom: 8px;">
+                    <input type="checkbox" name="cc" value="${opt}" style="margin-left: 8px;">
+                    ${opt}
+                </label>
+            `).join('');
+        }
+        
+        async function submitCorrespondence() {
+            const recipient = document.getElementById('finalRecipient').value;
+            if (!recipient) {
+                alert('يرجى اختيار المرسل إليه النهائي');
+                return;
+            }
+            
+            // Collect CC
+            const ccCheckboxes = document.querySelectorAll('input[name="cc"]:checked');
+            const cc = Array.from(ccCheckboxes).map(cb => cb.value);
+            
+            const finalContent = document.getElementById('previewContent').textContent;
+            
+            const payload = {
+                corr_type: 'صادر',
+                subject: formData.subject || selectedTemplate.name,
+                content: finalContent,
+                priority: 'normal',
+                recipient_id: recipient,
+                template_id: selectedTemplate.id,
+                template_data: JSON.stringify(formData),
+                cc: cc
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/correspondences`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    alert('✅ تم إرسال المراسلة للاعتماد بنجاح');
+                    window.location.href = 'correspondences.html';
+                } else {
+                    const error = await response.json();
+                    alert('❌ فشل الإرسال: ' + (error.error || ''));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('❌ خطأ في الاتصال');
+            }
+        }
+    </script>
+</body>
+</html>

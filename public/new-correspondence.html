@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء مراسلة جديدة - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151; text-decoration: none;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px; }
+        
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 28px; font-weight: 900; color: #111827; margin-bottom: 8px; }
+        .page-subtitle { color: #6b7280; font-size: 15px; }
+        
+        .form-card {
+            background: white; border-radius: 16px; padding: 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .section-title {
+            font-size: 18px; font-weight: 800; color: #111827;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;
+            display: flex; align-items: center; gap: 8px;
+        }
+        
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-label {
+            display: block; font-weight: 700; color: #374151;
+            margin-bottom: 8px; font-size: 14px;
+        }
+        
+        .required {
+            color: #ef4444;
+        }
+        
+        .form-control, .form-select {
+            width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-family: 'Tajawal', sans-serif;
+            font-size: 14px; transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea.form-control {
+            resize: vertical; min-height: 200px;
+        }
+        
+        .radio-group {
+            display: flex; gap: 24px; align-items: center;
+        }
+        
+        .radio-option {
+            display: flex; align-items: center; gap: 8px;
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 18px; height: 18px; cursor: pointer;
+            accent-color: #3b82f6;
+        }
+        
+        .radio-option label {
+            font-size: 14px; font-weight: 600; color: #374151;
+            cursor: pointer;
+        }
+        
+        .upload-zone {
+            border: 3px dashed #e5e7eb; border-radius: 12px;
+            padding: 32px; text-align: center; cursor: pointer;
+            transition: all 0.3s; background: #fafafa;
+        }
+        
+        .upload-zone:hover {
+            border-color: #3b82f6; background: #f9fafb;
+        }
+        
+        .upload-zone.has-file {
+            border-color: #10b981; background: #f0fdf4;
+        }
+        
+        .upload-icon {
+            width: 48px; height: 48px; margin: 0 auto 12px;
+            color: #9ca3af;
+        }
+        
+        .upload-text {
+            font-size: 16px; font-weight: 700; color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .upload-hint {
+            font-size: 14px; color: #6b7280;
+        }
+        
+        .file-preview {
+            display: none; margin-top: 16px; padding: 16px;
+            background: #f9fafb; border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .file-preview.show {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        
+        .file-info {
+            display: flex; align-items: center; gap: 12px;
+        }
+        
+        .file-icon {
+            width: 40px; height: 40px; background: #3b82f6;
+            border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; color: white; font-size: 20px;
+        }
+        
+        .file-details span {
+            display: block;
+        }
+        
+        .file-name {
+            font-weight: 700; color: #111827; font-size: 14px;
+        }
+        
+        .file-size {
+            font-size: 12px; color: #6b7280;
+        }
+        
+        .btn-remove {
+            background: #ef4444; color: white; border: none;
+            padding: 8px 16px; border-radius: 6px; cursor: pointer;
+            font-family: 'Tajawal', sans-serif; font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .checkbox-group {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .checkbox-option {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px; background: #f9fafb; border-radius: 8px;
+            border: 2px solid #e5e7eb; transition: all 0.3s;
+        }
+        
+        .checkbox-option:hover {
+            border-color: #3b82f6; background: #eff6ff;
+        }
+        
+        .checkbox-option input[type="checkbox"] {
+            width: 18px; height: 18px; cursor: pointer;
+            accent-color: #3b82f6;
+        }
+        
+        .checkbox-option label {
+            font-size: 14px; font-weight: 600; color: #374151;
+            cursor: pointer; flex: 1;
+        }
+        
+        .add-recipient-btn {
+            background: #f3f4f6; border: 2px dashed #d1d5db;
+            padding: 12px; border-radius: 8px; cursor: pointer;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #6b7280; width: 100%;
+            transition: all 0.3s; margin-top: 12px;
+        }
+        
+        .add-recipient-btn:hover {
+            border-color: #3b82f6; color: #3b82f6; background: #eff6ff;
+        }
+        
+        .custom-recipients {
+            display: none; margin-top: 16px;
+        }
+        
+        .custom-recipients.show {
+            display: block;
+        }
+        
+        .recipient-item {
+            display: flex; gap: 8px; margin-bottom: 8px;
+        }
+        
+        .recipient-item input {
+            flex: 1;
+        }
+        
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3b82f6; color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb; transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6b7280; color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .btn-danger {
+            background: #ef4444; color: white;
+        }
+        
+        .form-actions {
+            display: flex; gap: 12px; justify-content: flex-end;
+            margin-top: 32px; padding-top: 24px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .alert {
+            padding: 16px 20px; border-radius: 12px;
+            margin-bottom: 20px; font-size: 14px; font-weight: 600;
+            display: none;
+        }
+        
+        .alert.show { display: block; }
+        
+        .alert-success {
+            background: #d1fae5; color: #065f46;
+            border: 2px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2; color: #991b1b;
+            border: 2px solid #fecaca;
+        }
+        
+        .workflow-preview {
+            background: #f9fafb; padding: 20px; border-radius: 12px;
+            border: 2px solid #e5e7eb; margin-top: 16px;
+        }
+        
+        .workflow-title {
+            font-size: 14px; font-weight: 700; color: #374151;
+            margin-bottom: 16px;
+        }
+        
+        .workflow-steps {
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative;
+        }
+        
+        .workflow-step {
+            text-align: center; flex: 1; position: relative;
+        }
+        
+        .workflow-step:not(:last-child)::after {
+            content: '←';
+            position: absolute; right: -20px; top: 50%;
+            transform: translateY(-50%); font-size: 20px;
+            color: #3b82f6;
+        }
+        
+        .step-icon {
+            width: 48px; height: 48px; background: #3b82f6;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; margin: 0 auto 8px;
+            color: white; font-size: 20px; font-weight: 700;
+        }
+        
+        .step-label {
+            font-size: 12px; font-weight: 700; color: #374151;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .info-box {
+            background: #dbeafe; border: 2px solid #3b82f6;
+            padding: 16px; border-radius: 12px; margin-bottom: 20px;
+        }
+        
+        .info-box p {
+            font-size: 14px; color: #1e40af; line-height: 1.6;
+        }
+        
+        .info-box strong {
+            color: #1e3a8a;
+        }
+        
+        .template-btn {
+            padding: 16px; background: white; border: 2px solid #e5e7eb;
+            border-radius: 12px; font-family: 'Tajawal', sans-serif;
+            font-size: 14px; font-weight: 700; color: #111827;
+            cursor: pointer; transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .template-btn:hover {
+            background: #eff6ff; border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 32px;">📝</div>
+            <h1>إنشاء مراسلة جديدة</h1>
+        </div>
+        <a href="dashboard.html" class="btn-back">← العودة</a>
+    </div>
+    
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">كتاب رسمي جديد</div>
+            <div class="page-subtitle">قم بإنشاء كتاب رسمي جديد مع سير عمل تلقائي للاعتماد</div>
+        </div>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <div class="info-box">
+            <p><strong>📋 ملاحظة:</strong> سيتم إرسال الكتاب تلقائياً للاعتماد حسب السلم الإداري: الشعبة ← القسم ← المدير/المعاون للتوقيع النهائي</p>
+        </div>
+        
+        <form id="correspondenceForm" onsubmit="submitCorrespondence(event)">
+            <div class="form-card">
+                <!-- Template Selection -->
+                <div class="section-title">
+                    📑 اختيار القالب
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">قوالب جاهزة</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                        <button type="button" class="template-btn" onclick="downloadTemplate('official-letter')">
+                            📋 كتاب رسمي عام
+                        </button>
+                        <button type="button" class="template-btn" onclick="downloadTemplate('leave-request')">
+                            🏖️ طلب إجازة
+                        </button>
+                        <button type="button" class="template-btn" onclick="downloadTemplate('meeting-minutes')">
+                            👥 محضر اجتماع
+                        </button>
+                        <button type="button" class="template-btn" onclick="downloadTemplate('official-memo')">
+                            📝 مذكرة رسمية
+                        </button>
+                    </div>
+                    <div style="font-size: 13px; color: #6b7280; padding: 12px; background: #f9fafb; border-radius: 8px;">
+                        💡 <strong>تعليمات:</strong> اضغط على القالب المناسب لتحميله، ثم افتحه في Word وعبّي البيانات، ثم احفظه وارفعه أدناه.
+                    </div>
+                </div>
+                
+                <!-- Template Upload Section -->
+                <div class="section-title" style="margin-top: 24px;">
+                    📤 رفع الكتاب المعبأ
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">ارفع الملف بعد التعبئة <span class="required">*</span></label>
+                    <input type="file" id="fileInput" accept=".doc,.docx,.pdf" onchange="handleFileUpload(event)">
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">اضغط لرفع الكتاب المعبأ</div>
+                        <div class="upload-hint">Word, PDF (أقل من 10MB)</div>
+                    </div>
+                    <div class="file-preview" id="filePreview">
+                        <div class="file-info">
+                            <div class="file-icon">📄</div>
+                            <div class="file-details">
+                                <span class="file-name" id="fileName"></span>
+                                <span class="file-size" id="fileSize"></span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-remove" onclick="removeFile()">إزالة</button>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">العدد</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="autoNumber" name="numberType" value="auto" checked onchange="toggleNumberInput()">
+                                <label for="autoNumber">تلقائي</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="manualNumber" name="numberType" value="manual" onchange="toggleNumberInput()">
+                                <label for="manualNumber">يدوي</label>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control" id="corrNumber" name="corr_number" 
+                               placeholder="سيتم التوليد تلقائياً" disabled style="margin-top: 12px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">التاريخ</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="autoDate" name="dateType" value="auto" checked onchange="toggleDateInput()">
+                                <label for="autoDate">تلقائي</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="manualDate" name="dateType" value="manual" onchange="toggleDateInput()">
+                                <label for="manualDate">يدوي</label>
+                            </div>
+                        </div>
+                        <input type="date" class="form-control" id="corrDate" name="corr_date" 
+                               disabled style="margin-top: 12px;">
+                    </div>
+                </div>
+                
+                <!-- Recipient and Content -->
+                <div class="section-title">
+                    📬 المرسل إليه والموضوع
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">نوع المراسلة <span class="required">*</span></label>
+                        <select class="form-select" name="corr_type" required>
+                            <option value="صادر">صادر</option>
+                            <option value="وارد">وارد</option>
+                            <option value="داخلي">داخلي</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">الأولوية</label>
+                        <select class="form-select" name="priority">
+                            <option value="normal">عادي</option>
+                            <option value="urgent">عاجل</option>
+                            <option value="very_urgent">عاجل جداً</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label class="form-label">المرسل إليه النهائي <span class="required">*</span></label>
+                    <select class="form-select" name="recipient_id" required id="recipientSelect">
+                        <option value="">اختر المرسل إليه</option>
+                    </select>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label class="form-label">الموضوع <span class="required">*</span></label>
+                    <input type="text" class="form-control" name="subject" required 
+                           placeholder="مثال: طلب إجازة اعتيادية">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label class="form-label">المحتوى <span class="required">*</span></label>
+                    <textarea class="form-control" name="content" required 
+                              placeholder="اكتب محتوى الكتاب الرسمي هنا..."></textarea>
+                </div>
+                
+                <!-- Copy To Section -->
+                <div class="section-title">
+                    📤 نسخة إلى (اختياري)
+                </div>
+                
+                <div class="checkbox-group" id="ccCheckboxes">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <button type="button" class="add-recipient-btn" onclick="toggleCustomRecipients()">
+                    + إضافة جهة أخرى
+                </button>
+                
+                <div class="custom-recipients" id="customRecipients">
+                    <div id="customRecipientsList"></div>
+                    <button type="button" class="btn btn-secondary" style="margin-top: 8px;" onclick="addCustomRecipient()">
+                        + إضافة
+                    </button>
+                </div>
+                
+                <!-- Workflow Preview -->
+                <div class="section-title" style="margin-top: 32px;">
+                    🔄 سير العمل المتوقع
+                </div>
+                
+                <div class="workflow-preview" id="workflowPreview">
+                    <div class="workflow-title">سيمر الكتاب بالمراحل التالية:</div>
+                    <div class="workflow-steps" id="workflowSteps">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                        حفظ كمسودة
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        إرسال للاعتماد
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        let uploadedFile = null;
+        let customRecipientCount = 0;
+        
+        // Load initial data
+        window.addEventListener('load', async () => {
+            console.log('🔄 بدء تحميل الصفحة...');
+            console.log('👤 المستخدم الحالي:', user);
+            
+            try {
+                await loadRecipients();
+                await loadCCOptions();
+                updateWorkflowPreview();
+                console.log('✅ تم تحميل الصفحة بنجاح');
+            } catch (error) {
+                console.error('❌ خطأ في تحميل الصفحة:', error);
+            }
+        });
+        
+        // File upload handling
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 10 * 1024 * 1024) {
+                showAlert('حجم الملف يجب أن يكون أقل من 10MB', 'error');
+                return;
+            }
+            
+            uploadedFile = file;
+            
+            document.getElementById('uploadZone').classList.add('has-file');
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('filePreview').classList.add('show');
+        }
+        
+        function removeFile() {
+            uploadedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadZone').classList.remove('has-file');
+            document.getElementById('filePreview').classList.remove('show');
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+        
+        // Toggle number/date inputs
+        function toggleNumberInput() {
+            const input = document.getElementById('corrNumber');
+            const isManual = document.getElementById('manualNumber').checked;
+            input.disabled = !isManual;
+            input.placeholder = isManual ? 'أدخل العدد' : 'سيتم التوليد تلقائياً';
+            if (!isManual) input.value = '';
+        }
+        
+        function toggleDateInput() {
+            const input = document.getElementById('corrDate');
+            const isManual = document.getElementById('manualDate').checked;
+            input.disabled = !isManual;
+            if (!isManual) input.value = '';
+        }
+        
+        // Load recipients (managers/directors)
+        async function loadRecipients() {
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('recipientSelect');
+                    
+                    // فلتر المستخدمين: المدراء والمعاونين فقط (level <= 3)
+                    const managers = data.data.filter(u => u.level && u.level <= 3);
+                    
+                    if (managers.length === 0) {
+                        // إذا ما في مدراء، اعرض الكل
+                        data.data.forEach(u => {
+                            const option = document.createElement('option');
+                            option.value = u.id;
+                            option.textContent = `${u.full_name} - ${u.role_name_ar || 'موظف'}`;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        managers.forEach(u => {
+                            const option = document.createElement('option');
+                            option.value = u.id;
+                            option.textContent = `${u.full_name} - ${u.role_name_ar || 'مدير'}`;
+                            select.appendChild(option);
+                        });
+                    }
+                    
+                    console.log('تم تحميل المستلمين:', managers.length || data.data.length);
+                } else {
+                    console.error('فشل تحميل المستخدمين:', response.status);
+                    showAlert('فشل تحميل قائمة المستلمين', 'error');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المستلمين:', error);
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // Load CC options
+        async function loadCCOptions() {
+            const ccContainer = document.getElementById('ccCheckboxes');
+            
+            const defaultCC = [
+                { id: 'archive', label: 'الأرشيف' },
+                { id: 'admin_dept', label: 'القسم الإداري' },
+                { id: 'follow_up', label: 'شعبة المتابعة' },
+                { id: 'hr', label: 'الموارد البشرية' }
+            ];
+            
+            defaultCC.forEach(cc => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-option';
+                div.innerHTML = `
+                    <input type="checkbox" id="cc_${cc.id}" name="cc[]" value="${cc.id}">
+                    <label for="cc_${cc.id}">${cc.label}</label>
+                `;
+                ccContainer.appendChild(div);
+            });
+        }
+        
+        // Custom recipients
+        function toggleCustomRecipients() {
+            const container = document.getElementById('customRecipients');
+            container.classList.toggle('show');
+        }
+        
+        function addCustomRecipient() {
+            const list = document.getElementById('customRecipientsList');
+            const id = ++customRecipientCount;
+            
+            const div = document.createElement('div');
+            div.className = 'recipient-item';
+            div.innerHTML = `
+                <input type="text" class="form-control" name="custom_cc[]" placeholder="اسم الجهة">
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
+            `;
+            list.appendChild(div);
+        }
+        
+        // Update workflow preview
+        function updateWorkflowPreview() {
+            const steps = [
+                { icon: '👤', label: 'أنت (المرسل)' },
+                { icon: '📂', label: user.div_name || 'الشعبة' },
+                { icon: '🏢', label: user.dept_name || 'القسم' },
+                { icon: '✍️', label: 'المدير (توقيع نهائي)' }
+            ];
+            
+            const container = document.getElementById('workflowSteps');
+            container.innerHTML = steps.map(step => `
+                <div class="workflow-step">
+                    <div class="step-icon">${step.icon}</div>
+                    <div class="step-label">${step.label}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Submit correspondence
+        async function submitCorrespondence(event) {
+            event.preventDefault();
+            
+            if (!uploadedFile) {
+                showAlert('الرجاء رفع قالب الكتاب', 'error');
+                return;
+            }
+            
+            const formData = new FormData(event.target);
+            
+            // Add file
+            formData.append('template_file', uploadedFile);
+            
+            // Add user info
+            formData.append('created_by', user.id);
+            formData.append('department_id', user.department_id);
+            formData.append('division_id', user.division_id);
+            formData.append('status', 'pending');
+            
+            try {
+                const response = await fetch(`${API_URL}/correspondences`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('تم إرسال المراسلة للاعتماد بنجاح', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'correspondences.html';
+                    }, 2000);
+                } else {
+                    showAlert(result.error || 'فشل إرسال المراسلة', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // Save as draft
+        async function saveDraft() {
+            showAlert('سيتم حفظ المسودة قريباً', 'error');
+        }
+        
+        // Download template
+        function downloadTemplate(templateType) {
+            const templates = {
+                'official-letter': {
+                    name: 'قالب_كتاب_رسمي.docx',
+                    url: '/templates/official-letter-template.docx'
+                },
+                'leave-request': {
+                    name: 'قالب_طلب_إجازة.docx',
+                    url: '/templates/leave-request-template.docx'
+                },
+                'meeting-minutes': {
+                    name: 'قالب_محضر_اجتماع.docx',
+                    url: '/templates/meeting-minutes-template.docx'
+                },
+                'official-memo': {
+                    name: 'قالب_مذكرة_رسمية.docx',
+                    url: '/templates/official-memo-template.docx'
+                }
+            };
+            
+            const template = templates[templateType];
+            if (template) {
+                // Create download link
+                const link = document.createElement('a');
+                link.href = template.url;
+                link.download = template.name;
+                link.click();
+                
+                showAlert(`✅ تم تحميل ${template.name}. افتحه في Word وعبّي البيانات ثم ارفعه.`, 'success');
+            }
+        }
+        
+        // Alert function
+        function showAlert(message, type) {
+            const alert = document.getElementById('alertBox');
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

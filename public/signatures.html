@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التوقيع الإلكتروني - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151; text-decoration: none;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px; }
+        
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 28px; font-weight: 900; color: #111827; margin-bottom: 8px; }
+        .page-subtitle { color: #6b7280; font-size: 15px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        
+        .card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .card-title {
+            font-size: 20px; font-weight: 800; color: #111827;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .tabs {
+            display: flex; gap: 12px; margin-bottom: 24px;
+        }
+        
+        .tab {
+            padding: 10px 20px; border: 2px solid #e5e7eb; border-radius: 10px;
+            background: white; cursor: pointer; font-family: 'Tajawal', sans-serif;
+            font-size: 14px; font-weight: 700; color: #374151; transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-color: #3b82f6; background: #eff6ff; color: #1e40af;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        #signatureCanvas {
+            border: 3px dashed #e5e7eb;
+            border-radius: 12px;
+            cursor: crosshair;
+            width: 100%;
+            height: 300px;
+            background: white;
+        }
+        
+        .canvas-tools {
+            display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        
+        .upload-zone {
+            border: 3px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-zone:hover {
+            border-color: #3b82f6;
+            background: #f9fafb;
+        }
+        
+        .upload-zone svg {
+            width: 48px; height: 48px;
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+        
+        .upload-text {
+            font-size: 16px; font-weight: 700; color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .upload-hint {
+            font-size: 14px; color: #6b7280;
+        }
+        
+        .preview-section {
+            margin-top: 24px;
+        }
+        
+        .signature-preview {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            background: white;
+            text-align: center;
+        }
+        
+        .signature-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            margin-bottom: 16px;
+        }
+        
+        .signature-info {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        
+        .signature-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .signature-info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .signature-info-label {
+            font-weight: 700;
+            color: #374151;
+        }
+        
+        .signature-info-value {
+            color: #6b7280;
+        }
+        
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .alert.show { display: block; }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fecaca;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #bfdbfe;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        
+        .empty-state svg {
+            width: 64px; height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        #uploadInput {
+            display: none;
+        }
+        
+        .signature-field-demo {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            background: #fafafa;
+            margin-top: 24px;
+        }
+        
+        .demo-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+        
+        .signature-field {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .signature-field img {
+            max-width: 200px;
+            max-height: 80px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        
+        .signature-text {
+            font-family: 'Courier New', monospace;
+            color: #374151;
+            line-height: 1.8;
+        }
+        
+        .signature-name {
+            font-weight: 700;
+            font-size: 15px;
+        }
+        
+        .signature-date {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 32px;">🖊️</div>
+            <h1>التوقيع الإلكتروني</h1>
+        </div>
+        <a href="dashboard.html" class="btn-back">← العودة</a>
+    </div>
+    
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">إنشاء وإدارة التوقيع الإلكتروني</div>
+            <div class="page-subtitle">قم بإنشاء توقيعك الإلكتروني لاستخدامه في اعتماد المراسلات</div>
+        </div>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <div class="grid">
+            <!-- Create Signature -->
+            <div class="card">
+                <h2 class="card-title">إنشاء التوقيع</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('draw')">رسم التوقيع</button>
+                    <button class="tab" onclick="switchTab('upload')">رفع صورة</button>
+                </div>
+                
+                <!-- Draw Tab -->
+                <div id="drawTab" class="tab-content active">
+                    <canvas id="signatureCanvas"></canvas>
+                    <div class="canvas-tools">
+                        <button class="btn btn-danger" onclick="clearCanvas()">مسح</button>
+                        <button class="btn btn-primary" onclick="saveSignature('draw')">حفظ التوقيع</button>
+                    </div>
+                </div>
+                
+                <!-- Upload Tab -->
+                <div id="uploadTab" class="tab-content">
+                    <input type="file" id="uploadInput" accept="image/*" onchange="handleUpload(event)">
+                    <div class="upload-zone" onclick="document.getElementById('uploadInput').click()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <div class="upload-text">اضغط لرفع صورة التوقيع</div>
+                        <div class="upload-hint">PNG, JPG (أقل من 2MB)</div>
+                    </div>
+                    <div id="uploadPreview" style="margin-top: 20px; display: none;">
+                        <img id="uploadedImage" style="max-width: 100%; border-radius: 8px;">
+                        <button class="btn btn-primary" style="margin-top: 12px;" onclick="saveSignature('upload')">حفظ التوقيع</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Current Signature -->
+            <div class="card">
+                <h2 class="card-title">التوقيع الحالي</h2>
+                
+                <div id="currentSignatureSection">
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">لا يوجد توقيع</div>
+                        <div style="font-size: 14px;">قم بإنشاء توقيعك الإلكتروني أولاً</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preview with Signature Field -->
+            <div class="card full-width">
+                <h2 class="card-title">معاينة التوقيع على المستند</h2>
+                
+                <div class="signature-field-demo">
+                    <div class="demo-title">هكذا سيظهر توقيعك على المراسلات الرسمية:</div>
+                    <div class="signature-field" id="signatureFieldPreview">
+                        <div style="color: #9ca3af; font-size: 14px; text-align: center; padding: 40px;">
+                            قم بإنشاء التوقيع أولاً لمعاينته هنا
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        // Canvas Setup
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let uploadedImageData = null;
+        
+        // Set canvas size
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Drawing functions
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'draw') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('drawTab').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('uploadTab').classList.add('active');
+            }
+        }
+        
+        // Upload handling
+        function handleUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 2 * 1024 * 1024) {
+                showAlert('حجم الملف يجب أن يكون أقل من 2MB', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImageData = e.target.result;
+                document.getElementById('uploadedImage').src = uploadedImageData;
+                document.getElementById('uploadPreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Save signature
+        async function saveSignature(type) {
+            let signatureData;
+            
+            if (type === 'draw') {
+                // Check if canvas is empty
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const isEmpty = !imageData.data.some(channel => channel !== 0);
+                
+                if (isEmpty) {
+                    showAlert('الرجاء رسم التوقيع أولاً', 'error');
+                    return;
+                }
+                
+                signatureData = canvas.toDataURL('image/png');
+            } else {
+                if (!uploadedImageData) {
+                    showAlert('الرجاء رفع صورة التوقيع أولاً', 'error');
+                    return;
+                }
+                signatureData = uploadedImageData;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users/${user.id}/signature`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        signature_data: signatureData
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('تم حفظ التوقيع بنجاح', 'success');
+                    loadCurrentSignature();
+                } else {
+                    showAlert(result.error || 'فشل حفظ التوقيع', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // Load current signature
+        async function loadCurrentSignature() {
+            try {
+                const response = await fetch(`${API_URL}/users/${user.id}/signature`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.data && data.data.signature_data) {
+                        displayCurrentSignature(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        function displayCurrentSignature(signature) {
+            const section = document.getElementById('currentSignatureSection');
+            
+            section.innerHTML = `
+                <div class="signature-preview">
+                    <img src="${signature.signature_data}" alt="التوقيع">
+                    <div class="signature-info">
+                        <div class="signature-info-item">
+                            <span class="signature-info-label">الاسم</span>
+                            <span class="signature-info-value">${user.full_name}</span>
+                        </div>
+                        <div class="signature-info-item">
+                            <span class="signature-info-label">المنصب</span>
+                            <span class="signature-info-value">${user.role_name_ar || 'موظف'}</span>
+                        </div>
+                        <div class="signature-info-item">
+                            <span class="signature-info-label">تاريخ الإنشاء</span>
+                            <span class="signature-info-value">${new Date(signature.created_at).toLocaleDateString('ar-IQ')}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Update preview
+            updateSignatureFieldPreview(signature.signature_data);
+        }
+        
+        function updateSignatureFieldPreview(signatureImage) {
+            const preview = document.getElementById('signatureFieldPreview');
+            const today = new Date().toLocaleDateString('ar-IQ', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            preview.innerHTML = `
+                <img src="${signatureImage}" alt="التوقيع">
+                <div class="signature-text">
+                    <div class="signature-name">${user.full_name}</div>
+                    <div>${user.role_name_ar || 'موظف'} - ${user.dept_name || user.div_name || user.school_name || ''}</div>
+                    <div class="signature-date">وُقّع إلكترونياً بتاريخ ${today}</div>
+                    <div style="font-size: 11px; color: #9ca3af; margin-top: 8px;">
+                        التوقيع الإلكتروني معتمد ومسجل في النظام
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.getElementById('alertBox');
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Load on page load
+        window.addEventListener('load', loadCurrentSignature);
+    </script>
+</body>
+</html>

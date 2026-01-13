@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الأرشيف - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151; text-decoration: none;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
+        
+        .page-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .page-title { font-size: 28px; font-weight: 900; color: #111827; }
+        
+        .search-card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px;
+        }
+        
+        .search-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block; font-weight: 700; color: #374151;
+            margin-bottom: 8px; font-size: 13px;
+        }
+        
+        .form-control, .form-select {
+            width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        
+        .btn-secondary { background: #6b7280; color: white; }
+        
+        .card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        table {
+            width: 100%; border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 14px 12px; text-align: right;
+            border-bottom: 1px solid #e5e7eb; font-size: 13px;
+        }
+        
+        th {
+            background: #f9fafb; font-weight: 700;
+            color: #374151; position: sticky; top: 0;
+        }
+        
+        tbody tr {
+            transition: all 0.2s; cursor: pointer;
+        }
+        
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .badge {
+            padding: 4px 12px; border-radius: 12px;
+            font-size: 11px; font-weight: 700;
+            display: inline-block;
+        }
+        
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-archived { background: #e5e7eb; color: #374151; }
+        
+        .corr-number {
+            font-weight: 700; color: #3b82f6;
+        }
+        
+        .action-btn {
+            background: #eff6ff; color: #3b82f6;
+            border: none; padding: 6px 12px;
+            border-radius: 6px; cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 12px; font-weight: 700;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: #3b82f6; color: white;
+        }
+        
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: #9ca3af;
+        }
+        
+        .stats {
+            display: flex; gap: 24px; margin-bottom: 20px;
+            font-size: 14px; color: #6b7280; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 32px;">🗄️</div>
+            <h1>الأرشيف</h1>
+        </div>
+        <a href="dashboard.html" class="btn-back">← العودة</a>
+    </div>
+    
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">أرشيف المراسلات المكتملة</div>
+        </div>
+        
+        <!-- Search Filters -->
+        <div class="search-card">
+            <div class="search-grid">
+                <div class="form-group">
+                    <label>البحث</label>
+                    <input type="text" class="form-control" id="searchInput" 
+                           placeholder="ابحث بالرقم أو الموضوع..." 
+                           onkeyup="applyFilters()">
+                </div>
+                <div class="form-group">
+                    <label>السنة</label>
+                    <select class="form-select" id="yearFilter" onchange="applyFilters()">
+                        <option value="">الكل</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>القسم</label>
+                    <select class="form-select" id="deptFilter" onchange="applyFilters()">
+                        <option value="">الكل</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>من تاريخ</label>
+                    <input type="date" class="form-control" id="dateFrom" onchange="applyFilters()">
+                </div>
+                <div class="form-group">
+                    <label>إلى تاريخ</label>
+                    <input type="date" class="form-control" id="dateTo" onchange="applyFilters()">
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                مسح الفلاتر
+            </button>
+        </div>
+        
+        <!-- Table -->
+        <div class="card">
+            <div class="stats">
+                <span>📊 إجمالي المراسلات المؤرشفة: <strong id="totalCount">0</strong></span>
+                <span>📅 آخر تحديث: <strong id="lastUpdate">-</strong></span>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">الرقم</th>
+                            <th>الموضوع</th>
+                            <th style="width: 150px;">المرسل</th>
+                            <th style="width: 150px;">المستلم</th>
+                            <th style="width: 100px;">الحالة</th>
+                            <th style="width: 120px;">تاريخ الإنجاز</th>
+                            <th style="width: 100px;">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archiveTable">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 60px; color: #9ca3af;">
+                                جاري التحميل...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        let allCorrespondences = [];
+        let filteredCorrespondences = [];
+        
+        window.addEventListener('load', async () => {
+            await loadDepartments();
+            await loadArchive();
+        });
+        
+        async function loadDepartments() {
+            try {
+                const response = await fetch(`${API_URL}/departments`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('deptFilter');
+                    
+                    data.data.forEach(dept => {
+                        const option = document.createElement('option');
+                        option.value = dept.id;
+                        option.textContent = dept.dept_name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        async function loadArchive() {
+            try {
+                const response = await fetch(`${API_URL}/correspondences`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Filter only completed/approved correspondences
+                    allCorrespondences = (data.data || []).filter(c => 
+                        c.status === 'approved' || c.status === 'archived'
+                    );
+                    
+                    document.getElementById('totalCount').textContent = allCorrespondences.length;
+                    
+                    if (allCorrespondences.length > 0) {
+                        const latest = allCorrespondences[0];
+                        document.getElementById('lastUpdate').textContent = 
+                            new Date(latest.updated_at || latest.created_at).toLocaleDateString('ar-IQ');
+                    }
+                    
+                    applyFilters();
+                } else {
+                    throw new Error('فشل تحميل الأرشيف');
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('archiveTable').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state" style="color: #ef4444;">
+                            فشل تحميل البيانات
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const year = document.getElementById('yearFilter').value;
+            const dept = document.getElementById('deptFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            
+            filteredCorrespondences = allCorrespondences.filter(c => {
+                // Search
+                if (search && !c.subject.toLowerCase().includes(search) && 
+                    !c.corr_number.toLowerCase().includes(search)) {
+                    return false;
+                }
+                
+                // Year
+                if (year && !c.created_at.startsWith(year)) {
+                    return false;
+                }
+                
+                // Department
+                if (dept && c.department_id != dept) {
+                    return false;
+                }
+                
+                // Date from
+                if (dateFrom && new Date(c.created_at) < new Date(dateFrom)) {
+                    return false;
+                }
+                
+                // Date to
+                if (dateTo && new Date(c.created_at) > new Date(dateTo)) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            displayArchive();
+        }
+        
+        function displayArchive() {
+            const tbody = document.getElementById('archiveTable');
+            
+            if (filteredCorrespondences.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            لا توجد مراسلات مؤرشفة تطابق معايير البحث
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = filteredCorrespondences.map(c => {
+                const completedDate = c.updated_at ? 
+                    new Date(c.updated_at).toLocaleDateString('ar-IQ') : '-';
+                
+                return `
+                    <tr onclick="viewCorrespondence(${c.id})">
+                        <td><span class="corr-number">${c.corr_number}</span></td>
+                        <td>${c.subject}</td>
+                        <td>${c.sender_name || 'غير محدد'}</td>
+                        <td>${c.receiver_name || 'غير محدد'}</td>
+                        <td><span class="badge badge-archived">مؤرشف</span></td>
+                        <td>${completedDate}</td>
+                        <td>
+                            <button class="action-btn" onclick="event.stopPropagation(); viewCorrespondence(${c.id})">
+                                عرض
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('yearFilter').value = '';
+            document.getElementById('deptFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            applyFilters();
+        }
+        
+        function viewCorrespondence(id) {
+            window.location.href = `correspondence-details.html?id=${id}`;
+        }
+    </script>
+</body>
+</html>

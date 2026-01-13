@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المراسلات الإدارية الحكومي</title>
+    
+    <!-- React & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+            direction: rtl;
+            background: #f8fafc;
+        }
+        
+        #root {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // ضع كود React هنا من ملف CorrespondenceSystem.jsx
+        // يمكن نسخ الكود من الملف المنفصل
+        
+        // مثال بسيط للتجربة:
+        const App = () => {
+            return (
+                <div style={{
+                    minHeight: '100vh',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '24px',
+                        padding: '48px',
+                        maxWidth: '600px',
+                        width: '100%',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            borderRadius: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 24px'
+                        }}>
+                            <svg style={{ width: '48px', height: '48px', color: 'white' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        
+                        <h1 style={{
+                            fontSize: '32px',
+                            fontWeight: '900',
+                            color: '#111827',
+                            marginBottom: '12px',
+                            letterSpacing: '-0.5px'
+                        }}>
+                            نظام المراسلات الإدارية
+                        </h1>
+                        
+                        <p style={{
+                            fontSize: '18px',
+                            color: '#6b7280',
+                            marginBottom: '32px',
+                            lineHeight: '1.6'
+                        }}>
+                            نظام إلكتروني متكامل لإدارة المراسلات الرسمية<br/>
+                            للمؤسسات الحكومية العراقية
+                        </p>
+                        
+                        <div style={{
+                            background: '#f9fafb',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            marginBottom: '24px',
+                            textAlign: 'right'
+                        }}>
+                            <h3 style={{
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                color: '#111827',
+                                marginBottom: '16px'
+                            }}>
+                                المميزات الرئيسية:
+                            </h3>
+                            <ul style={{
+                                listStyle: 'none',
+                                padding: 0,
+                                fontSize: '14px',
+                                color: '#374151',
+                                lineHeight: '2'
+                            }}>
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#10b981', fontSize: '20px' }}>✓</span>
+                                    إدارة المراسلات الرسمية (كتب، مطالعات، طلبات)
+                                </li>
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#10b981', fontSize: '20px' }}>✓</span>
+                                    التوقيع الإلكتروني بأنواعه المختلفة
+                                </li>
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#10b981', fontSize: '20px' }}>✓</span>
+                                    مصادقة ثنائية وتشفير الملفات
+                                </li>
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#10b981', fontSize: '20px' }}>✓</span>
+                                    تقارير وإحصائيات شاملة
+                                </li>
+                                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ color: '#10b981', fontSize: '20px' }}>✓</span>
+                                    أرشفة تلقائية وبحث متقدم
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <button style={{
+                            width: '100%',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            border: 'none',
+                            padding: '16px',
+                            borderRadius: '12px',
+                            fontSize: '16px',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s',
+                            boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 4px 14px rgba(102, 126, 234, 0.4)';
+                        }}
+                        onClick={() => {
+    window.location.href = '/login';
+}}
+                            الدخول إلى النظام
+                        </button>
+                        
+                        <div style={{
+                            marginTop: '24px',
+                            padding: '16px',
+                            background: '#fffbeb',
+                            borderRadius: '12px',
+                            border: '2px solid #fbbf24',
+                            textAlign: 'right'
+                        }}>
+                            <p style={{
+                                fontSize: '13px',
+                                color: '#92400e',
+                                lineHeight: '1.6',
+                                margin: 0
+                            }}>
+                                <strong>ملاحظة:</strong> هذا عرض توضيحي لواجهة النظام. للحصول على النظام الكامل مع قاعدة البيانات والـ Backend، يرجى الرجوع إلى ملف README.md للحصول على تعليمات التثبيت الكاملة.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        ReactDOM.render(<App />, document.getElementById('root'));
+        
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

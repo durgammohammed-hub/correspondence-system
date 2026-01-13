@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل المراسلة - نظام المراسلات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; direction: rtl; background: #f8fafc; }
+        
+        .header {
+            background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header-title { display: flex; align-items: center; gap: 12px; }
+        h1 { font-size: 20px; font-weight: 900; color: #111827; }
+        
+        .btn-back {
+            background: #f3f4f6; border: none; padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; color: #374151; text-decoration: none;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 32px; }
+        
+        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+        
+        .card {
+            background: white; border-radius: 16px; padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .card-title {
+            font-size: 18px; font-weight: 800; color: #111827;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e5e7eb;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .badge {
+            padding: 6px 16px; border-radius: 20px;
+            font-size: 12px; font-weight: 700;
+            display: inline-block;
+        }
+        
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-urgent { background: #fee2e2; color: #991b1b; font-weight: 900; }
+        
+        .corr-header {
+            margin-bottom: 24px;
+        }
+        
+        .corr-number {
+            font-size: 14px; color: #6b7280; margin-bottom: 8px;
+        }
+        
+        .corr-subject {
+            font-size: 24px; font-weight: 900; color: #111827;
+            margin-bottom: 16px;
+        }
+        
+        .corr-meta {
+            display: flex; gap: 24px; flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 14px; color: #6b7280;
+        }
+        
+        .meta-item svg {
+            width: 18px; height: 18px;
+        }
+        
+        .corr-content {
+            background: #f9fafb; padding: 24px; border-radius: 12px;
+            border: 2px solid #e5e7eb; margin-bottom: 24px;
+            line-height: 2; white-space: pre-wrap;
+        }
+        
+        .info-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 16px; margin-bottom: 24px;
+        }
+        
+        .info-item {
+            padding: 16px; background: #f9fafb;
+            border-radius: 8px; border: 1px solid #e5e7eb;
+        }
+        
+        .info-label {
+            font-size: 12px; color: #6b7280;
+            font-weight: 600; margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 14px; color: #111827;
+            font-weight: 700;
+        }
+        
+        .workflow-stages {
+            margin-top: 24px;
+        }
+        
+        .stage {
+            padding: 16px; background: white;
+            border: 2px solid #e5e7eb; border-radius: 12px;
+            margin-bottom: 12px; position: relative;
+        }
+        
+        .stage::before {
+            content: '';
+            position: absolute;
+            right: 20px; top: 100%;
+            width: 2px; height: 12px;
+            background: #e5e7eb;
+        }
+        
+        .stage:last-child::before {
+            display: none;
+        }
+        
+        .stage.completed {
+            border-color: #10b981; background: #f0fdf4;
+        }
+        
+        .stage.in-progress {
+            border-color: #f59e0b; background: #fffbeb;
+        }
+        
+        .stage.pending {
+            border-color: #e5e7eb; background: #fafafa;
+        }
+        
+        .stage-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 8px;
+        }
+        
+        .stage-name {
+            font-size: 14px; font-weight: 700;
+            color: #111827;
+        }
+        
+        .stage-status {
+            font-size: 12px; font-weight: 700;
+        }
+        
+        .stage.completed .stage-status {
+            color: #059669;
+        }
+        
+        .stage.in-progress .stage-status {
+            color: #f59e0b;
+        }
+        
+        .stage.pending .stage-status {
+            color: #9ca3af;
+        }
+        
+        .stage-user {
+            font-size: 13px; color: #6b7280;
+        }
+        
+        .stage-date {
+            font-size: 12px; color: #9ca3af;
+            margin-top: 4px;
+        }
+        
+        .stage-signature {
+            margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .stage-signature img {
+            max-width: 150px; max-height: 60px;
+        }
+        
+        .attachments-list {
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        
+        .attachment-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px; background: #f9fafb;
+            border-radius: 8px; border: 1px solid #e5e7eb;
+            transition: all 0.3s; cursor: pointer;
+        }
+        
+        .attachment-item:hover {
+            background: #eff6ff; border-color: #3b82f6;
+        }
+        
+        .attachment-icon {
+            width: 40px; height: 40px; background: #3b82f6;
+            border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; color: white; font-size: 18px;
+        }
+        
+        .attachment-info {
+            flex: 1;
+        }
+        
+        .attachment-name {
+            font-size: 14px; font-weight: 700;
+            color: #111827; margin-bottom: 2px;
+        }
+        
+        .attachment-size {
+            font-size: 12px; color: #6b7280;
+        }
+        
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px;
+            font-family: 'Tajawal', sans-serif; font-size: 14px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+            display: inline-block; text-decoration: none;
+        }
+        
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-2px); }
+        
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        .btn-full {
+            width: 100%; margin-bottom: 12px;
+        }
+        
+        .action-buttons {
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1000; align-items: center; justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white; border-radius: 16px;
+            max-width: 600px; width: 90%; max-height: 90vh;
+            overflow-y: auto; padding: 32px;
+        }
+        
+        .modal-header {
+            margin-bottom: 24px;
+        }
+        
+        .modal-title {
+            font-size: 22px; font-weight: 900;
+            color: #111827; margin-bottom: 8px;
+        }
+        
+        .modal-subtitle {
+            font-size: 14px; color: #6b7280;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block; font-weight: 700; color: #374151;
+            margin-bottom: 8px; font-size: 14px;
+        }
+        
+        .form-control, .form-select {
+            width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-family: 'Tajawal', sans-serif;
+            font-size: 14px; transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea.form-control {
+            resize: vertical; min-height: 120px;
+        }
+        
+        .signature-preview {
+            border: 2px solid #e5e7eb; border-radius: 12px;
+            padding: 20px; text-align: center; background: #fafafa;
+            margin-bottom: 20px;
+        }
+        
+        .signature-preview img {
+            max-width: 200px; max-height: 80px;
+            margin-bottom: 12px;
+        }
+        
+        .signature-text {
+            font-size: 14px; color: #374151;
+            line-height: 1.8;
+        }
+        
+        .modal-actions {
+            display: flex; gap: 12px; margin-top: 24px;
+        }
+        
+        .btn-secondary {
+            background: #6b7280; color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .empty-state {
+            text-align: center; padding: 40px 20px;
+            color: #9ca3af;
+        }
+        
+        .cc-list {
+            margin-top: 20px; padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .cc-title {
+            font-size: 14px; font-weight: 700;
+            color: #374151; margin-bottom: 12px;
+        }
+        
+        .cc-item {
+            padding: 8px 12px; background: #f9fafb;
+            border-radius: 6px; font-size: 13px;
+            color: #6b7280; margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 32px;">📄</div>
+            <h1>تفاصيل المراسلة</h1>
+        </div>
+        <a href="correspondences.html" class="btn-back">← العودة</a>
+    </div>
+    
+    <div class="container">
+        <div class="grid">
+            <!-- Main Content -->
+            <div>
+                <div class="card">
+                    <div id="corrDetails">
+                        <div style="text-align: center; padding: 60px; color: #9ca3af;">
+                            جاري التحميل...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div>
+                <!-- Actions -->
+                <div class="card">
+                    <h3 class="card-title">الإجراءات</h3>
+                    <div class="action-buttons" id="actionButtons">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+                
+                <!-- Workflow Stages -->
+                <div class="card" style="margin-top: 24px;">
+                    <h3 class="card-title">سير العمل</h3>
+                    <div class="workflow-stages" id="workflowStages">
+                        <div style="text-align: center; padding: 20px; color: #9ca3af;">
+                            جاري التحميل...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Document Preview -->
+                <div class="card" style="margin-top: 24px;" id="documentPreviewCard">
+                    <h3 class="card-title">📄 معاينة الكتاب</h3>
+                    <div id="documentPreview">
+                        <div style="text-align: center; padding: 20px; color: #9ca3af;">
+                            جاري التحميل...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Attachments -->
+                <div class="card" style="margin-top: 24px;">
+                    <h3 class="card-title">المرفقات</h3>
+                    <div class="attachments-list" id="attachmentsList">
+                        <div style="text-align: center; padding: 20px; color: #9ca3af;">
+                            جاري التحميل...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Signature Modal -->
+    <div class="modal" id="signatureModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">توقيع واعتماد المراسلة</div>
+                <div class="modal-subtitle">قم بمراجعة المراسلة واتخاذ القرار المناسب</div>
+            </div>
+            
+            <form id="signatureForm" onsubmit="submitSignature(event)">
+                <div class="form-group">
+                    <label class="form-label">القرار</label>
+                    <select class="form-select" name="decision" required>
+                        <option value="">اختر القرار</option>
+                        <option value="موافق">موافق</option>
+                        <option value="الإجراء اللازم">الإجراء اللازم</option>
+                        <option value="مرفوض">مرفوض</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">الملاحظات (اختياري)</label>
+                    <textarea class="form-control" name="notes" 
+                              placeholder="أضف أي ملاحظات أو تعليقات..."></textarea>
+                </div>
+                
+                <div class="signature-preview" id="signaturePreview">
+                    <div style="color: #9ca3af;">جاري تحميل التوقيع...</div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeSignatureModal()">
+                        إلغاء
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        ✍️ توقيع واعتماد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+        
+        // Get correspondence ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const corrId = urlParams.get('id');
+        
+        let currentCorrespondence = null;
+        let userSignature = null;
+        
+        // Load data
+        window.addEventListener('load', async () => {
+            if (!corrId) {
+                alert('معرّف المراسلة غير موجود');
+                window.location.href = 'correspondences.html';
+                return;
+            }
+            
+            await Promise.all([
+                loadCorrespondence(),
+                loadWorkflow(),
+                loadAttachments(),
+                loadUserSignature()
+            ]);
+            
+            updateActionButtons();
+        });
+        
+        // Load correspondence details
+        async function loadCorrespondence() {
+            try {
+                const response = await fetch(`${API_URL}/correspondences/${corrId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentCorrespondence = data.data;
+                    displayCorrespondence(currentCorrespondence);
+                } else {
+                    throw new Error('فشل تحميل المراسلة');
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('corrDetails').innerHTML = `
+                    <div class="empty-state" style="color: #ef4444;">
+                        فشل تحميل المراسلة
+                    </div>
+                `;
+            }
+        }
+        
+        // Display correspondence
+        function displayCorrespondence(corr) {
+            const statusBadge = getStatusBadge(corr.status);
+            const priorityBadge = getPriorityBadge(corr.priority);
+            const date = new Date(corr.created_at).toLocaleDateString('ar-IQ');
+            
+            document.getElementById('corrDetails').innerHTML = `
+                <div class="corr-header">
+                    <div class="corr-number">الكتاب رقم: ${corr.corr_number}</div>
+                    <div class="corr-subject">${corr.subject}</div>
+                    <div class="corr-meta">
+                        <div class="meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>المرسل: ${corr.sender_name || 'غير محدد'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>${date}</span>
+                        </div>
+                        <div class="meta-item">
+                            ${statusBadge}
+                        </div>
+                        <div class="meta-item">
+                            ${priorityBadge}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">المرسل</div>
+                        <div class="info-value">${corr.sender_name || 'غير محدد'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">المستلم</div>
+                        <div class="info-value">${corr.receiver_name || 'غير محدد'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">نوع المراسلة</div>
+                        <div class="info-value">${getTypeLabel(corr.corr_type)}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">المعالج الحالي</div>
+                        <div class="info-value">${corr.handler_name || 'غير محدد'}</div>
+                    </div>
+                </div>
+                
+                <h3 class="card-title" style="margin-top: 24px;">محتوى المراسلة</h3>
+                <div class="corr-content">${corr.content}</div>
+                
+                ${corr.cc_list && corr.cc_list.length > 0 ? `
+                    <div class="cc-list">
+                        <div class="cc-title">نسخة إلى:</div>
+                        ${corr.cc_list.map(cc => `
+                            <div class="cc-item">📤 ${cc.recipient_name}</div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+        
+        // Load workflow stages
+        async function loadWorkflow() {
+            try {
+                const response = await fetch(`${API_URL}/correspondences/${corrId}/workflow`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayWorkflow(data.data || []);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        // Display workflow
+        function displayWorkflow(stages) {
+            const container = document.getElementById('workflowStages');
+            
+            if (stages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">لا توجد مراحل</div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = stages.map(stage => {
+                let statusClass = 'pending';
+                let statusText = 'في الانتظار';
+                
+                if (stage.status === 'completed') {
+                    statusClass = 'completed';
+                    statusText = 'مكتمل ✓';
+                } else if (stage.status === 'in_progress') {
+                    statusClass = 'in-progress';
+                    statusText = 'قيد المعالجة...';
+                }
+                
+                return `
+                    <div class="stage ${statusClass}">
+                        <div class="stage-header">
+                            <div class="stage-name">${stage.stage_name}</div>
+                            <div class="stage-status">${statusText}</div>
+                        </div>
+                        <div class="stage-user">👤 ${stage.user_name || 'غير محدد'}</div>
+                        ${stage.completed_at ? `
+                            <div class="stage-date">📅 ${new Date(stage.completed_at).toLocaleString('ar-IQ')}</div>
+                        ` : ''}
+                        ${stage.signature_data ? `
+                            <div class="stage-signature">
+                                <img src="${stage.signature_data}" alt="التوقيع">
+                            </div>
+                        ` : ''}
+                        ${stage.notes ? `
+                            <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+                                📝 ${stage.notes}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Load attachments
+        async function loadAttachments() {
+            try {
+                const response = await fetch(`${API_URL}/correspondences/${corrId}/attachments`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayAttachments(data.data || []);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        // Display attachments
+        function displayAttachments(attachments) {
+            const container = document.getElementById('attachmentsList');
+            
+            if (attachments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">لا توجد مرفقات</div>
+                `;
+                displayDocumentPreview(null);
+                return;
+            }
+            
+            container.innerHTML = attachments.map(att => `
+                <div class="attachment-item" onclick="downloadAttachment('${att.file_path}', '${att.file_name}')">
+                    <div class="attachment-icon">📎</div>
+                    <div class="attachment-info">
+                        <div class="attachment-name">${att.file_name}</div>
+                        <div class="attachment-size">${formatFileSize(att.file_size)}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Display first attachment as document preview
+            if (attachments.length > 0) {
+                displayDocumentPreview(attachments[0]);
+            }
+        }
+        
+        // Display document preview
+        function displayDocumentPreview(attachment) {
+            const container = document.getElementById('documentPreview');
+            const card = document.getElementById('documentPreviewCard');
+            
+            if (!attachment) {
+                card.style.display = 'none';
+                return;
+            }
+            
+            card.style.display = 'block';
+            
+            const fileUrl = `${API_URL.replace('/api', '')}/uploads/${attachment.file_path}`;
+            const fileName = attachment.file_name.toLowerCase();
+            
+            // Check file type
+            if (fileName.endsWith('.pdf')) {
+                // PDF - use iframe
+                container.innerHTML = `
+                    <iframe src="${fileUrl}" 
+                            style="width: 100%; height: 600px; border: 2px solid #e5e7eb; border-radius: 12px;">
+                    </iframe>
+                    <div style="margin-top: 12px; text-align: center;">
+                        <button class="btn btn-primary" onclick="window.open('${fileUrl}', '_blank')">
+                            📥 تحميل الملف
+                        </button>
+                    </div>
+                `;
+            } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+                // Word - use Office Online Viewer or download
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: #f9fafb; border-radius: 12px; border: 2px solid #e5e7eb;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">📄</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 12px;">
+                            ${attachment.file_name}
+                        </div>
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 24px;">
+                            ملف Word - ${formatFileSize(attachment.file_size)}
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="window.open('${fileUrl}', '_blank')">
+                                📥 تحميل الملف
+                            </button>
+                            <button class="btn btn-secondary" onclick="previewInOffice('${fileUrl}')">
+                                👁️ معاينة أونلاين
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Other files - just download
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: #f9fafb; border-radius: 12px; border: 2px solid #e5e7eb;">
+                        <div style="font-size: 64px; margin-bottom: 16px;">📎</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 12px;">
+                            ${attachment.file_name}
+                        </div>
+                        <button class="btn btn-primary" onclick="window.open('${fileUrl}', '_blank')">
+                            📥 تحميل الملف
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Preview Word file in Office Online
+        function previewInOffice(fileUrl) {
+            const fullUrl = window.location.origin + fileUrl;
+            const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fullUrl)}`;
+            window.open(viewerUrl, '_blank');
+        }
+        
+        // Load user signature
+        async function loadUserSignature() {
+            try {
+                const response = await fetch(`${API_URL}/users/${user.id}/signature`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    userSignature = data.data;
+                    displaySignaturePreview();
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        // Display signature preview in modal
+        function displaySignaturePreview() {
+            const container = document.getElementById('signaturePreview');
+            
+            if (!userSignature) {
+                container.innerHTML = `
+                    <div style="color: #ef4444;">
+                        ⚠️ لم يتم إنشاء التوقيع بعد<br>
+                        <a href="signatures.html" style="color: #3b82f6;">انتقل لإنشاء التوقيع</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const today = new Date().toLocaleDateString('ar-IQ');
+            
+            container.innerHTML = `
+                <img src="${userSignature.signature_data}" alt="التوقيع">
+                <div class="signature-text">
+                    <div style="font-weight: 700;">${user.full_name}</div>
+                    <div>${user.role_name_ar || 'موظف'}</div>
+                    <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
+                        وُقّع إلكترونياً بتاريخ ${today}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Update action buttons based on user role
+        function updateActionButtons() {
+            const container = document.getElementById('actionButtons');
+            let buttons = '';
+            
+            // Check if user can sign this correspondence
+            if (currentCorrespondence && currentCorrespondence.current_handler_id === user.id) {
+                buttons += `
+                    <button class="btn btn-success btn-full" onclick="openSignatureModal()">
+                        ✍️ توقيع واعتماد
+                    </button>
+                `;
+            }
+            
+            buttons += `
+                <button class="btn btn-primary btn-full" onclick="printCorrespondence()">
+                    🖨️ طباعة
+                </button>
+                <a href="correspondences.html" class="btn btn-secondary btn-full">
+                    ← العودة للقائمة
+                </a>
+            `;
+            
+            container.innerHTML = buttons;
+        }
+        
+        // Open signature modal
+        function openSignatureModal() {
+            if (!userSignature) {
+                if (confirm('يجب إنشاء التوقيع أولاً. هل تريد الانتقال لصفحة التوقيع؟')) {
+                    window.location.href = 'signatures.html';
+                }
+                return;
+            }
+            
+            document.getElementById('signatureModal').classList.add('show');
+        }
+        
+        // Close signature modal
+        function closeSignatureModal() {
+            document.getElementById('signatureModal').classList.remove('show');
+            document.getElementById('signatureForm').reset();
+        }
+        
+        // Submit signature
+        async function submitSignature(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = {
+                decision: formData.get('decision'),
+                notes: formData.get('notes'),
+                signature_data: userSignature.signature_data
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/correspondences/${corrId}/sign`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('✅ تم التوقيع والاعتماد بنجاح');
+                    closeSignatureModal();
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('❌ فشل التوقيع: ' + (error.error || ''));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('❌ خطأ في الاتصال');
+            }
+        }
+        
+        // Helper functions
+        function getStatusBadge(status) {
+            const statuses = {
+                'draft': { label: 'مسودة', class: 'badge-info' },
+                'pending': { label: 'قيد المراجعة', class: 'badge-warning' },
+                'in_progress': { label: 'قيد المعالجة', class: 'badge-warning' },
+                'approved': { label: 'معتمدة', class: 'badge-success' },
+                'rejected': { label: 'مرفوضة', class: 'badge-danger' }
+            };
+            const s = statuses[status] || { label: status, class: 'badge-info' };
+            return `<span class="badge ${s.class}">${s.label}</span>`;
+        }
+        
+        function getPriorityBadge(priority) {
+            const priorities = {
+                'normal': { label: 'عادي', class: 'badge' },
+                'urgent': { label: 'عاجل', class: 'badge-urgent' },
+                'very_urgent': { label: 'عاجل جداً', class: 'badge-urgent' }
+            };
+            const p = priorities[priority] || { label: priority, class: 'badge' };
+            return `<span class="badge ${p.class}">${p.label}</span>`;
+        }
+        
+        function getTypeLabel(type) {
+            const types = {
+                'incoming': 'وارد',
+                'outgoing': 'صادر',
+                'internal': 'داخلي'
+            };
+            return types[type] || type;
+        }
+        
+        function formatFileSize(bytes) {
+            if (!bytes) return '0 B';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+        
+        function downloadAttachment(path, name) {
+            window.open(`${API_URL.replace('/api', '')}/uploads/${path}`, '_blank');
+        }
+        
+        function printCorrespondence() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
