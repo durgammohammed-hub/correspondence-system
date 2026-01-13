@@ -9,6 +9,11 @@ const fs = require('fs').promises;
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("🚀 Server running on", PORT);
+});
+
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // ================================================
