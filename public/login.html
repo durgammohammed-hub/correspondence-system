@@ -273,10 +273,9 @@ const API_URL = '/api';
                     window.location.href = 'dashboard.html';
                 }, 800);
 
-            } catch (error) {
-  console.error('LOGIN ERROR:', error);
-  showAlert('فشل الاتصال: ' + (error?.message || error));
-} finally {
+            } catch (error) {console.error('Login error:', error);
+res.status(500).json({ error: 'Login failed', details: error.message, code: error.code });
+
   setLoading(false);
 }
 
