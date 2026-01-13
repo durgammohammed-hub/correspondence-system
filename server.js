@@ -2005,11 +2005,6 @@ app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
 // START SERVER
 // ================================================
 
-app.listen(PORT, () => {
-  console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
-  console.log(`📍 http://localhost:${PORT}`);
-});
-
 module.exports = app;
 
 const PORT = process.env.PORT || 5000;
