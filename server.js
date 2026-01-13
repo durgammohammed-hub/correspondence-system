@@ -218,7 +218,6 @@ function checkPermission(requiredLevel) {
     next();
   };
 }
-
 // ================================================
 // AUTH ROUTES
 // ================================================
@@ -226,7 +225,7 @@ function checkPermission(requiredLevel) {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password, twoFactorCode } = req.body;
-    
+
     const [users] = await pool.query(
       `SELECT u.*, r.role_name_ar, r.level, r.permissions, 
               d.dept_name, dvs.div_name, s.school_name
@@ -244,8 +243,12 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const user = users[0];
+
+    if (!user.password_hash) {
+      return res.status(500).json({ error: 'Login failed', details: 'Missing password_hash', code: 'NO_PASSWORD_HASH' });
+    }
+
     const match = await bcrypt.compare(password, user.password_hash);
-    
     if (!match) {
       return res.status(401).json({ error: 'خطأ في اسم المستخدم أو كلمة المرور' });
     }
@@ -255,21 +258,18 @@ app.post('/api/auth/login', async (req, res) => {
       if (!twoFactorCode) {
         return res.json({ requiresTwoFactor: true });
       }
-      // هنا يمكن إضافة التحقق من رمز 2FA باستخدام speakeasy
+      // TODO: تحقق 2FA لاحقاً
     }
 
     // تحديث آخر تسجيل دخول
-    await pool.query(
-      'UPDATE users SET last_login = NOW() WHERE id = ?',
-      [user.id]
-    );
+    await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
     const token = jwt.sign(
-      { 
-        id: user.id, 
-        username: user.username, 
+      {
+        id: user.id,
+        username: user.username,
         level: user.level,
-        permissions: user.permissions 
+        permissions: user.permissions
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -277,27 +277,18 @@ app.post('/api/auth/login', async (req, res) => {
 
     delete user.password_hash;
     delete user.two_factor_secret;
-    
-    res.json({ success: true, token, user });
+
+    return res.json({ success: true, token, user });
+
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'حدث خطأ' });
+    return res.status(500).json({
+      error: 'Login failed',
+      code: error.code || null,
+      details: error.message || String(error)
+    });
   }
 });
-
-app.post('/api/auth/logout', authenticateToken, async (req, res) => {
-  try {
-    await pool.query(
-      'UPDATE user_sessions SET is_active = 0 WHERE user_id = ?',
-      [req.user.id]
-    );
-    res.json({ success: true, message: 'تم تسجيل الخروج' });
-  } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ error: 'حدث خطأ' });
-  }
-});
-
 // ================================================
 // USERS ROUTES
 // ================================================
