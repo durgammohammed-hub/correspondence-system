@@ -1,8 +1,4 @@
 const express = require('express');
-console.log("🟦 BOOT: server.js loaded");
-console.log("🟦 ENV MYSQL_URL exists?", !!process.env.MYSQL_URL);
-console.log("🟦 ENV MYSQL_URL preview:", (process.env.MYSQL_URL || "").slice(0, 35) + "...");
-
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -119,22 +115,10 @@ const pool = mysql.createPool({
   connectTimeout: 10000,
   ssl: { rejectUnauthorized: false }
 });
-
-// Test database connection (prints real reason if fails)
+// Test database connection
 pool.query("SELECT 1")
   .then(() => console.log("✅ DB Connected"))
-  .catch((e) => {
-  console.error("❌ DB connect error:", {
-    code: e?.code,
-    errno: e?.errno,
-    sqlState: e?.sqlState,
-    message: e?.message,
-    host: e?.hostname,
-    address: e?.address,
-    port: e?.port
-  });
-});
-
+  .catch((e) => console.error("❌ DB connect error:", e?.code, e?.message));
 
 
 // ================================================
