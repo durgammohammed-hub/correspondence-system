@@ -1,10 +1,10 @@
 const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
-  uri: process.env.MYSQL_URL,
+  uri: process.env.MYSQL_URL,          // ✅ فقط هذا
   waitForConnections: true,
   connectionLimit: 10,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false }   // ✅
 });
 
 (async () => {
