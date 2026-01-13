@@ -274,11 +274,12 @@ const API_URL = '/api';
                 }, 800);
 
             } catch (error) {
-                console.error('Error:', error);
-                showAlert('فشل الاتصال بالخادم. تأكد من تشغيل Backend على المنفذ 5000');
-            } finally {
-                setLoading(false);
-            }
+  console.error('LOGIN ERROR:', error);
+  showAlert('فشل الاتصال: ' + (error?.message || error));
+} finally {
+  setLoading(false);
+}
+
         });
 
         // ✅ إذا عنده توكن سابق، يروح للداشبورد
