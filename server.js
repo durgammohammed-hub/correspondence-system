@@ -125,6 +125,8 @@ pool.getConnection()
   })
   .catch(err => {
     console.error('❌ خطأ في الاتصال بقاعدة البيانات:', err.message);
+console.error("FULL ERROR:", err);
+
   });
 
 // ================================================
