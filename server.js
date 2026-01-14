@@ -105,18 +105,22 @@ app.use('/api/', rateLimit(200, 60000)); // 200 طلب في الدقيقة
 
 // Database connection pool - محسّن للأداء العالي
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '123123',
-  database: process.env.DB_NAME || 'correspondence_system',
-  waitForConnections: true,
-  connectionLimit: 50,        // 50 اتصال متزامن (يدعم حتى 200 مستخدم)
-  queueLimit: 0,              // لا حد أقصى للطابور
-  connectTimeout: 10000,      // 10 ثواني timeout للاتصال
-  enableKeepAlive: true,      // إبقاء الاتصالات نشطة
-  keepAliveInitialDelay: 0
-});
+  host: process.env.DB_HOST || process.env.MYSQLHOST,
+  port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
+  user: process.env.DB_USER || process.env.MYSQLUSER,
+  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE,
 
+  waitForConnections: true,
+  connectionLimit: 50,
+  queueLimit: 0,
+  connectTimeout: 10000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+
+  // إذا واجهت SSL error بعدين نفعّلها
+  // ssl: { rejectUnauthorized: false }
+});
 // Test database connection
 pool.getConnection()
   .then(connection => {
