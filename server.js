@@ -3,25 +3,6 @@
 
 const express = require('express');
 const mysql = require('mysql2/promise');
-
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT || 3306),
-  waitForConnections: true,
-  connectionLimit: 10,
-});
-
-// ✅ هنا تضيفه (بعد pool مباشرة)
-pool.query("SELECT DATABASE() AS db")
-  .then(([rows]) => console.log("✅ Connected DB =", rows[0].db))
-  .catch((e) => console.error("❌ DB ERROR:", e.code, e.message));
-
-// بعدها تكمل بقية الكود: routes, app.listen ...
-
-
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -132,7 +113,24 @@ function rateLimit(maxRequests = 100, windowMs = 60000) {
 
 app.use('/api/', rateLimit(200, 60000));
 
-// ================================================// ================================================
+// ================================================
+// Database connection pool
+// ================================================
+console.log('✅ MYSQL_URL exists?', !!process.env.MYSQL_URL);
+
+const pool = mysql.createPool({
+  uri: process.env.MYSQL_URL,
+  waitForConnections: true,
+  connectionLimit: 10,
+  connectTimeout: 10000,
+  ssl: { rejectUnauthorized: false }
+});
+
+pool.query('SELECT 1')
+  .then(() => console.log('✅ DB Connected'))
+  .catch((e) => console.error('❌ DB connect error:', e?.code, e?.message));
+
+// ================================================
 // HELPERS
 // ================================================
 const cache = new Map();
@@ -229,39 +227,47 @@ function checkPermission(requiredLevel) {
 // ================================================
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, twoFactorCode } = req.body;
 
     const [users] = await pool.query(
-      `SELECT id, username, password_hash, full_name, role_id, is_active
-       FROM users
-       WHERE username = ? AND is_active = 1
-       LIMIT 1`,
+      `SELECT u.*, r.role_name_ar, r.level, r.permissions,
+              d.dept_name, dvs.div_name, s.school_name
+       FROM users u
+       LEFT JOIN roles r ON u.role_id = r.id
+       LEFT JOIN departments d ON u.department_id = d.id
+       LEFT JOIN divisions dvs ON u.division_id = dvs.id
+       LEFT JOIN schools s ON u.school_id = s.id
+       WHERE u.username = ? AND u.is_active = 1`,
       [username]
     );
 
-    if (users.length === 0) {
-      return res.status(401).json({ error: 'خطأ في اسم المستخدم أو كلمة المرور' });
-    }
+    if (users.length === 0) return res.status(401).json({ error: 'خطأ في اسم المستخدم أو كلمة المرور' });
 
     const user = users[0];
-
-    const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) {
-      return res.status(401).json({ error: 'خطأ في اسم المستخدم أو كلمة المرور' });
+    if (!user.password_hash) {
+      return res.status(500).json({ error: 'Login failed', details: 'Missing password_hash', code: 'NO_PASSWORD_HASH' });
     }
 
-    // سجل آخر دخول (اختياري)
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) return res.status(401).json({ error: 'خطأ في اسم المستخدم أو كلمة المرور' });
+
+    if (user.two_factor_enabled) {
+      if (!twoFactorCode) return res.json({ requiresTwoFactor: true });
+      // TODO: verify 2FA
+    }
+
     await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role_id: user.role_id },
+      { id: user.id, username: user.username, level: user.level, permissions: user.permissions },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
     delete user.password_hash;
-    return res.json({ success: true, token, user });
+    delete user.two_factor_secret;
 
+    return res.json({ success: true, token, user });
   } catch (error) {
     console.error('Login error:', error);
     return res.status(500).json({
