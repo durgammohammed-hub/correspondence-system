@@ -3,6 +3,25 @@
 
 const express = require('express');
 const mysql = require('mysql2/promise');
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT || 3306),
+  waitForConnections: true,
+  connectionLimit: 10,
+});
+
+// ✅ هنا تضيفه (بعد pool مباشرة)
+pool.query("SELECT DATABASE() AS db")
+  .then(([rows]) => console.log("✅ Connected DB =", rows[0].db))
+  .catch((e) => console.error("❌ DB ERROR:", e.code, e.message));
+
+// بعدها تكمل بقية الكود: routes, app.listen ...
+
+
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -119,11 +138,13 @@ app.use('/api/', rateLimit(200, 60000));
 console.log('✅ MYSQL_URL exists?', !!process.env.MYSQL_URL);
 
 const pool = mysql.createPool({
-  uri: process.env.MYSQL_URL,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,   // ✅ correspondence_system
+  port: Number(process.env.DB_PORT || 3306),
   waitForConnections: true,
   connectionLimit: 10,
-  connectTimeout: 10000,
-  ssl: { rejectUnauthorized: false }
 });
 
 pool.query('SELECT 1')
