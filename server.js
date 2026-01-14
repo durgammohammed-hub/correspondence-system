@@ -8,7 +8,6 @@ const path = require('path');
 const fs = require('fs').promises;
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // ================================================
@@ -2005,10 +2004,10 @@ app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
 // ================================================
 // START SERVER
 // ================================================
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
-  console.log(`📍 http://localhost:${PORT}`);
 });
 
 module.exports = app;
