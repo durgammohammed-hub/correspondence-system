@@ -132,6 +132,14 @@ pool.getConnection()
 console.error("FULL ERROR:", err);
 
   });
+app.get("/__debug_users_count", async (req, res) => {
+  try {
+    const [r] = await pool.query("SELECT COUNT(*) AS c FROM users");
+    res.json(r[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ================================================
 // HELPER FUNCTIONS
