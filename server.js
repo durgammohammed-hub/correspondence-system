@@ -140,6 +140,16 @@ app.get("/__debug_users_count", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+app.get("/__debug_tables", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()"
+    );
+    res.json(rows.map(r => r.table_name));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ================================================
 // HELPER FUNCTIONS
