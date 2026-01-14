@@ -132,26 +132,7 @@ function rateLimit(maxRequests = 100, windowMs = 60000) {
 
 app.use('/api/', rateLimit(200, 60000));
 
-// ================================================
-// Database connection pool
-// ================================================
-console.log('✅ MYSQL_URL exists?', !!process.env.MYSQL_URL);
-
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,   // ✅ correspondence_system
-  port: Number(process.env.DB_PORT || 3306),
-  waitForConnections: true,
-  connectionLimit: 10,
-});
-
-pool.query('SELECT 1')
-  .then(() => console.log('✅ DB Connected'))
-  .catch((e) => console.error('❌ DB connect error:', e?.code, e?.message));
-
-// ================================================
+// ================================================// ================================================
 // HELPERS
 // ================================================
 const cache = new Map();
