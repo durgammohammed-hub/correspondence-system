@@ -150,6 +150,14 @@ app.get("/__debug_tables", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+app.get("/__debug_db", async (req, res) => {
+  try {
+    const [r] = await pool.query("SELECT DATABASE() AS db, CURRENT_USER() AS current_user");
+    res.json(r[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ================================================
 // HELPER FUNCTIONS
