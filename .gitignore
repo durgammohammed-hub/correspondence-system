@@ -1,5 +1,12 @@
+# Node
 node_modules/
+node
+npm
+
+# Env files
 .env
 .env.local
-.DS_Store
+
+# Local artifacts
+correspondence-system@1.0.0
 npm-debug.log*
