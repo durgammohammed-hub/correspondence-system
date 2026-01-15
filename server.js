@@ -1,15 +1,25 @@
-const express = require('express');
-const mysql = require('mysql2/promise');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
+const express = require("express");
+const mysql = require("mysql2/promise");
+
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const cors = require("cors");
+const multer = require("multer");
+
+const path = require("node:path");
+const fs = require("node:fs");
+const fsp = require("node:fs/promises");
+
+require("dotenv").config();
+
+// تحميل env المحلي إذا موجود (للوضع الأوفلاين)
+const localEnv = path.join(__dirname, ".env.local");
+if (fs.existsSync(localEnv)) {
+  require("dotenv").config({ path: localEnv, override: true });
+}
 
 const app = express();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 // ================================================
 // MULTER CONFIGURATION FOR FILE UPLOADS
 // ================================================
@@ -105,22 +115,18 @@ app.use('/api/', rateLimit(200, 60000)); // 200 طلب في الدقيقة
 
 // Database connection pool - محسّن للأداء العالي
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || process.env.MYSQLHOST,
+  host: process.env.DB_HOST || process.env.MYSQLHOST || "127.0.0.1",
   port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
-  user: process.env.DB_USER || process.env.MYSQLUSER,
-  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD,
-  database: process.env.DB_NAME || process.env.MYSQLDATABASE,
-
+  user: process.env.DB_USER || process.env.MYSQLUSER || "root",
+  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || "",
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE || "correspondence_system",
   waitForConnections: true,
   connectionLimit: 50,
-  queueLimit: 0,
-  connectTimeout: 10000,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
-
-  // إذا واجهت SSL error بعدين نفعّلها
-  // ssl: { rejectUnauthorized: false }
+  queueLimit: 0
 });
+
+module.exports = pool;
+
 // Test database connection
 pool.getConnection()
   .then(connection => {
@@ -2037,9 +2043,8 @@ app.get('/api/correspondences/:id', authenticateToken, async (req, res) => {
 // START SERVER
 // ================================================
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Local/Online server on port ${PORT}`);
 });
 
 module.exports = app;
